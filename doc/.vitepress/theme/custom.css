@@ -1,0 +1,21 @@
+/* Site-wide type: Space Grotesk for display, Inter for body,
+   JetBrains Mono for code. Loaded in config head. */
+:root {
+  --vp-font-family-base: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --vp-font-family-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+:root {
+  --ax-bg: #0a0e13;
+  --ax-bg-soft: #0e141b;
+  --ax-card: #11161d;
+  --ax-border: #232b36;
+  --ax-text: #e6edf3;
+  --ax-muted: #8b949e;
+  --ax-accent: #9adcff;
+  --ax-accent-dim: #5b8ba3;
+  --ax-btn: #9adcff;
+  --ax-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --ax-body: 'Inter', system-ui, sans-serif;
+  --ax-mono: 'JetBrains Mono', ui-monospace, monospace;
+}

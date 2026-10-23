@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="axle logo">
+  <defs>
+    <linearGradient id="axle-g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5eead4"/>
+      <stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="112" height="112" rx="26" fill="url(#axle-g)"/>
+  <g stroke="#0f172a" stroke-linecap="round" fill="none">
+    <path d="M45 90 L64 42 L83 90" stroke-width="11" stroke-linejoin="round"/>
+    <line x1="33" y1="73" x2="95" y2="73" stroke-width="9"/>
+  </g>
+  <circle cx="29" cy="73" r="8" fill="#0f172a"/>
+  <circle cx="99" cy="73" r="8" fill="#0f172a"/>
+</svg>

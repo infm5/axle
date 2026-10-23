@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 190" role="img" aria-label="axle generation pipeline">
+  <style>
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 15px; fill: #1e293b; }
+    .small { font-size: 12px; fill: #64748b; }
+    .box { fill: #f8fafc; stroke: #3b82f6; stroke-width: 2; rx: 10; }
+    .box-final { fill: #eff6ff; stroke: #3b82f6; stroke-width: 2.5; rx: 10; }
+    .arrow { stroke: #94a3b8; stroke-width: 2; fill: none; }
+    .ahead { fill: #94a3b8; }
+    @media (prefers-color-scheme: dark) {
+      text { fill: #e2e8f0; }
+      .small { fill: #94a3b8; }
+      .box { fill: #0f172a; }
+      .box-final { fill: #172554; }
+    }
+  </style>
+  <rect class="box" x="5" y="45" width="170" height="100" rx="10"/>
+  <text x="90" y="88" text-anchor="middle">@ApiRoute</text>
+  <text class="small" x="90" y="110" text-anchor="middle">annotations + DTOs</text>
+
+  <line class="arrow" x1="175" y1="95" x2="205" y2="95"/>
+  <polygon class="ahead" points="205,95 197,90 197,100"/>
+
+  <rect class="box" x="210" y="45" width="170" height="100" rx="10"/>
+  <text x="295" y="88" text-anchor="middle">analyzer</text>
+  <text class="small" x="295" y="110" text-anchor="middle">static scan</text>
+
+  <line class="arrow" x1="380" y1="95" x2="410" y2="95"/>
+  <polygon class="ahead" points="410,95 402,90 402,100"/>
+
+  <rect class="box" x="415" y="45" width="170" height="100" rx="10"/>
+  <text x="500" y="88" text-anchor="middle">OpenAPI 3.1</text>
+  <text class="small" x="500" y="110" text-anchor="middle">document</text>
+
+  <line class="arrow" x1="585" y1="95" x2="615" y2="95"/>
+  <polygon class="ahead" points="615,95 607,90 607,100"/>
+
+  <rect class="box" x="620" y="20" width="170" height="150" rx="10"/>
+  <text x="705" y="55" text-anchor="middle">artifacts</text>
+  <text class="small" x="705" y="80" text-anchor="middle">openapi.json</text>
+  <text class="small" x="705" y="100" text-anchor="middle">openapi.yaml</text>
+  <text class="small" x="705" y="120" text-anchor="middle">openapi.g.dart</text>
+  <text class="small" x="705" y="140" text-anchor="middle">assets/swagger-ui</text>
+
+  <line class="arrow" x1="790" y1="95" x2="820" y2="95"/>
+  <polygon class="ahead" points="820,95 812,90 812,100"/>
+
+  <rect class="box-final" x="825" y="45" width="150" height="100" rx="10"/>
+  <text x="900" y="88" text-anchor="middle">adapter</text>
+  <text class="small" x="900" y="110" text-anchor="middle">/docs + .json</text>
+</svg>

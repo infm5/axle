@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Shelf">
+  <rect x="2" y="2" width="44" height="44" rx="11" fill="#11161d" stroke="#232b36" stroke-width="2"/>
+  <g fill="#9adcff">
+    <rect x="11" y="12" width="26" height="5" rx="2.5"/>
+    <rect x="11" y="21.5" width="26" height="5" rx="2.5"/>
+    <rect x="11" y="31" width="26" height="5" rx="2.5"/>
+  </g>
+</svg>

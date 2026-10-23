@@ -11,3 +11,7 @@ docs/release-automation.md
 .cursor/
 .claude/
 .cline/
+
+doc/node_modules/
+doc/.vitepress/dist/
+doc/.vitepress/cache/
