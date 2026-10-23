@@ -12,10 +12,11 @@ dart run melos run check   # analyze + test + format + spec freshness
 | Script | Command | Scope |
 | --- | --- | --- |
 | `analyze` | `dart analyze` | Whole workspace |
-| `test` | `dart test` per package with a `test/` dir | `axle_core`, `axle_cli`, `axle_relic`, `axle_shelf` |
+| `test` | `dart test` per package with a `test/` dir | `axle_core`, `axle_cli`, `axle_relic`, `axle_shelf`, `axle_serverpod` |
 | `format` | `dart format --output=none --set-exit-if-changed .` | Whole workspace |
 | `gen-check` | `axle gen --check` | Relic example |
 | `gen-check-shelf` | `axle gen --check` | Shelf example |
+| `check-serverpod-example` | `dart pub get`, `dart analyze`, `axle gen --check` | Serverpod example (nested workspace) |
 | `coverage` | `test_with_coverage` per package → `coverage/lcov.info` | Codecov-compatible LCOV |
 | `check` | All of the above in order | — |
 
@@ -34,6 +35,8 @@ using GitHub OIDC; no `PUB_CREDENTIALS` secret is required. Per-package tags
 - Generator errors must name the offending symbol and carry the correct
   sysexits code (`64` / `65` / `70` / `78`).
 - Generated example artifacts are committed; `gen --check` is the freshness gate.
+- The Serverpod example is a self-contained nested workspace. Keep it out of the
+  outer pub workspace and validate it with `melos run check-serverpod-example`.
 - No example unit tests — the examples are integration demos.
 - Dart floors stay split: core lowest, analyzer-based CLI highest. Do not raise
   an adapter's floor to the CLI's.

@@ -9,7 +9,7 @@ must never import Relic, Shelf, Serverpod, or Dart Frog.
 
 ## Install
 
-Apps usually get core transitively — both adapters re-export it. Depend on it
+Apps usually get core transitively — every adapter re-exports it. Depend on it
 directly when building an adapter or using the document model standalone:
 
 ```yaml

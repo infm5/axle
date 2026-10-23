@@ -6,8 +6,9 @@ Two halves, split the way Swaggo splits `swag` from its framework packages:
 
 1. **Generate** — the `axle` CLI statically analyzes annotated handlers and DTO
    classes, then writes spec artifacts.
-2. **Serve** — a thin adapter (`axle_relic`, `axle_shelf`, …) mounts the
-   generated spec and Swagger UI on a running server.
+2. **Serve** — a thin adapter (`axle_relic`, `axle_shelf`, `axle_serverpod`)
+   mounts the generated spec and Swagger UI on a running server. Serverpod docs
+   are served from the web server, not the API/RPC server.
 
 ## What OpenAPI is for
 
@@ -39,17 +40,18 @@ serialize responses — the server framework owns all runtime behavior.
 | `axle_cli` | `axle init` / `axle gen`. Analyzer-based scanning; emits JSON, YAML, Dart const, UI assets. |
 | `axle_relic` | Relic adapter. `mountAxleDocs(...)` plus standalone handlers. Re-exports core. |
 | `axle_shelf` | Shelf adapter. Composable `axleDocsHandler` plus standalone handlers. Re-exports core. |
+| `axle_serverpod` | Serverpod adapter. `pod.webServer.mountAxleDocs(...)` for web-server routes. Re-exports core. |
 
 Detail: [Packages](/packages/). Architecture: [How It Works](/guide/how-it-works).
 Rationale: [Design Decisions](/guide/design-decisions).
 
 ## Scope for v0.1
 
-- Server-side Dart only. Relic and Shelf adapters; framework-agnostic core.
+- Server-side Dart only. Relic, Shelf, and Serverpod adapters; framework-agnostic core.
 - Handlers must be **top-level functions**. Closures cannot carry annotations;
   methods are not discovered.
 - One spec per package. No build_runner mode.
 - No security schemes, no validation, no runtime route discovery.
 - Class/method endpoint discovery is deferred.
-- Packages are pre-publication: use `path:` dependencies or the repo workspace
-  until they land on pub.dev.
+- Packages are pre-1.0. Use the published `0.1.0` packages where available,
+  or `path:` dependencies while developing against the repo workspace.

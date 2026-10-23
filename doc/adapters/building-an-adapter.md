@@ -14,7 +14,7 @@ cache, and HTML behavior in the shared `AxleDocs` contract.
 ```
 application
   ├── axle_cli (dev dependency)
-  ├── an adapter (axle_relic, axle_shelf, ...)
+  ├── an adapter (axle_relic, axle_shelf, axle_serverpod)
   │     └── axle_core
   └── framework
 ```
@@ -59,8 +59,10 @@ framework supports composable handlers.
 
 ## Reference implementation
 
-`axle_relic` and `axle_shelf` are the reference implementations. A minimal
-adapter is roughly:
+`axle_relic`, `axle_shelf`, and `axle_serverpod` are the reference
+implementations. `axle_serverpod` is intentionally narrower: it serves docs on
+Serverpod's web server and does not describe API-server `Endpoint` methods.
+A minimal adapter is roughly:
 
 ```dart
 final docs = AxleDocs(spec: spec, specPath: specPath, docsPath: docsPath);
@@ -146,8 +148,8 @@ dependencies:
 Core is the stable contract. Adapters must not expose CLI internals or require
 users to match the CLI version.
 
-Current Dart floors are intentionally split: core supports Dart 3.7+, Shelf
-follows Shelf's floor, Relic follows Relic's floor, and the analyzer-based CLI
+Current Dart floors are intentionally split: core supports Dart 3.7+, Relic,
+Shelf, and Serverpod follow their framework floors, and the analyzer-based CLI
 has the highest floor. Do not force every adapter to the CLI's SDK requirement.
 
 ## Not in scope

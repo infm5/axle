@@ -22,6 +22,6 @@ npm run docs:preview
 ## Layout
 
 - `guide/` — introduction, getting started, how it works, examples.
-- `packages/` — one page per package (`core`, `cli`, `relic`, `shelf`) plus an overview.
+- `packages/` — one page per package (`core`, `cli`, `relic`, `shelf`, `serverpod`) plus an overview.
 - `adapters/` — how to build an adapter for another framework.
 - `reference/` — `axle.yaml` and annotation/DTO-mapping references.

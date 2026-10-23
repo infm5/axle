@@ -1,7 +1,7 @@
 # Roadmap & Status
 
-Phase 0–2 are implemented. Phases 3–5 are planned. Exit criteria are quoted
-from the design doc.
+Phases 0–1 are implemented, Phase 2 is partially implemented, and Phases 3–5
+are planned. Exit criteria are quoted from the design doc.
 
 ## Done
 
@@ -16,8 +16,10 @@ from the design doc.
 **Phase 2 (partial, shipped early) — Framework adapters.**
 
 - `AxleDocs` extracted from `axle_relic` into core.
-- `axle_shelf` added; both serve the same generated artifact with no
-  core/CLI changes.
+- `axle_shelf` added; it serves the same generated artifact as `axle_relic`
+  with no core/CLI changes.
+- `axle_serverpod` added for Serverpod 4 web-server routes, with a Docker-free
+  example and generated `Greeting` schema.
 - Local Swagger UI assets generated into `generate.output.ui`.
 - `axle init` is adapter-neutral; path deps replaced with version constraints;
   pub metadata, `.pubignore` files, tag-driven OIDC publish workflows, and MIT
@@ -39,8 +41,9 @@ offending Dart symbol; schema coverage documented.
 
 ## Planned
 
-**Phase 2 (remainder).** `axle_serverpod` and `axle_dart_frog`, each serving
-the same artifact with no core/CLI changes.
+**Phase 2 (remainder).** `axle_dart_frog`, serving the same artifact with no
+core/CLI changes. The Serverpod adapter is implemented for Serverpod 4 web
+routes; RPC `Endpoint` documentation remains out of scope.
 
 **Phase 3 — Security metadata.** Scheme definition API, route-level security
 annotations, global default, validation against defined schemes. Application
@@ -53,8 +56,9 @@ actually-protected example app. Design hook:
 - `axle gen` validates every referenced scheme exists.
 
 **Phase 4 — Distribution.** Publish `axle_core`, `axle_cli`, `axle_relic`,
-`axle_shelf` to pub.dev; document supported Dart/analyzer/framework versions.
-Exit: installable from pub.dev; example works from a clean checkout.
+`axle_shelf`, and `axle_serverpod` to pub.dev; document supported
+Dart/analyzer/framework versions. Exit: installable from pub.dev; example works
+from a clean checkout.
 
 **Phase 5 — Advanced tooling.** Watch mode, contract lint/diff, mock server
 from spec/examples, `transformJson` serving hook, multiple specs per package

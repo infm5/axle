@@ -35,18 +35,20 @@ spec diffs reflect API changes only. No file I/O is needed at runtime — the
 server imports the constant.
 
 **Serve.** The adapter serves the constant verbatim at `GET {specPath}` and the
-Swagger UI shell at `GET {docsPath}`. It binds no application routes.
+Swagger UI shell at `GET {docsPath}`. It binds no application routes. On
+Serverpod, these routes live on `pod.webServer`; API-server `Endpoint` methods
+are a separate RPC surface.
 
 ## Dependency direction
 
 ```
 axle_core
-   ^        ^          ^
-   |        |          |
-axle_cli  axle_relic  axle_shelf
-              ^          ^
-              |          |
-            apps       apps
+   ^        ^          ^           ^
+   |        |          |           |
+axle_cli  axle_relic  axle_shelf  axle_serverpod
+              ^          ^           ^
+              |          |           |
+            apps       apps        apps
 ```
 
 - `axle_core` has no runtime dependencies and no framework imports.

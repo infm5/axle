@@ -1,13 +1,13 @@
 # Getting Started
 
-This guide wires axle into a project end to end using the Relic adapter. The
-Shelf flow is identical except for the dependency and the mounting call — see
-[axle_shelf](/packages/shelf).
+This guide wires axle into a project end to end using the Relic adapter. Shelf
+and Serverpod use the same flow with their own dependency and mount call — see
+[axle_shelf](/packages/shelf) and [axle_serverpod](/packages/serverpod).
 
 ## Prerequisites
 
 - Dart SDK (the workspace requires `>=3.12.2 <4.0.0`).
-- A Dart server project with either `relic` or `shelf`.
+- A Dart server project using `relic`, `shelf`, or Serverpod 4.x.
 
 ## 1. Add the dependencies
 
@@ -23,7 +23,20 @@ dev_dependencies:
 ```
 
 `axle_relic` re-exports `axle_core`, so Relic apps only need `axle_relic` plus
-the CLI. For Shelf, depend on `axle_shelf` and `shelf` instead.
+the CLI. For Shelf, depend on `axle_shelf` and `shelf` instead. For Serverpod
+4.x, use the web-server adapter:
+
+```yaml
+dependencies:
+  axle_serverpod: ^0.1.0
+  serverpod: ^4.0.0
+
+dev_dependencies:
+  axle_cli: ^0.1.0
+```
+
+`axle_serverpod` also re-exports `axle_core`. Its docs routes run on
+`pod.webServer`, not the API server.
 
 ::: warning
 Relic 2.0.0 is currently a release candidate. Pin `^2.0.0-rc.2` until the
@@ -98,6 +111,31 @@ Notes:
   `@ApiSchema` is optional and only force-includes unreferenced models or
   overrides metadata.
 
+Serverpod handlers are `handleCall` methods on `Route` subclasses, so annotate a
+top-level function and delegate from the route. Keep the annotation path and
+the `addRoute` path in one constant:
+
+```dart
+const greetingPath = '/greeting';
+
+@ApiRoute(
+  method: ApiMethod.get,
+  path: greetingPath,
+  responses: [ApiResponse.ok(Greeting)],
+)
+Future<Response> greeting(Session session, Request request) async {
+  // ...
+}
+
+class GreetingRoute extends Route {
+  GreetingRoute() : super(methods: {Method.get});
+
+  @override
+  Future<Result> handleCall(Session session, Request request) =>
+      greeting(session, request);
+}
+```
+
 See [Annotations & DTO Mapping](/reference/annotations) for the full surface.
 
 ## 4. Generate the artifacts
@@ -151,6 +189,19 @@ final handler = axleDocsHandler(
 );
 ```
 
+Serverpod:
+
+```dart
+import 'package:axle_serverpod/axle_serverpod.dart';
+import 'package:your_package/src/generated/openapi.g.dart';
+
+pod.webServer.mountAxleDocs(
+  spec: axleOpenApiJson,
+  swaggerUiDirectory: 'assets/swagger-ui',
+);
+await pod.start();
+```
+
 Omit `swaggerUiDirectory` to use the pinned CDN-backed UI instead of local assets.
 
 ## 6. Run and verify
@@ -164,11 +215,21 @@ Then open:
 - `http://localhost:8080/docs` — Swagger UI
 - `http://localhost:8080/openapi.json` — the generated spec
 
+For Serverpod, use the **web server** port (`8082` in the example), not the
+API server port (`8090`). The example mounts the UI at `/swagger`:
+
+- `http://localhost:8082/swagger`
+- `http://localhost:8082/openapi.json`
+
+`serverpod start` lists API Endpoint methods in its terminal UI and Insights;
+web-server routes such as `/greeting` are intentionally not in that list.
+
 ## Complete examples
 
-Runnable Todo APIs for both frameworks live in the repository:
+Runnable examples for all three frameworks live in the repository:
 
 - [`packages/axle_relic/example`](https://github.com/infm5/axle/tree/master/packages/axle_relic/example)
 - [`packages/axle_shelf/example`](https://github.com/infm5/axle/tree/master/packages/axle_shelf/example)
+- [`packages/axle_serverpod/example`](https://github.com/infm5/axle/tree/master/packages/axle_serverpod/example)
 
-See [Examples](/guide/examples) for a walkthrough of both.
+See [Examples](/guide/examples) for a walkthrough of all three.

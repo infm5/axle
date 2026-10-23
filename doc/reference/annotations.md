@@ -15,7 +15,7 @@ Overrides are optional and should be used only for stable public contracts.
 | Field | Meaning |
 | --- | --- |
 | `method` | `ApiMethod` (`get`, `post`, `put`, `patch`, `delete`, `head`, `options`, `trace`) |
-| `path` | Relic or OpenAPI path syntax |
+| `path` | Relic/Serverpod or OpenAPI path syntax |
 | `summary` / `description` | Operation documentation |
 | `operationId` | Defaults to the handler function name |
 | `tags` | Operation-local tags |

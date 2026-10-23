@@ -46,6 +46,7 @@ export default defineConfig({
           { text: 'axle_cli', link: '/packages/cli' },
           { text: 'axle_relic', link: '/packages/relic' },
           { text: 'axle_shelf', link: '/packages/shelf' },
+          { text: 'axle_serverpod', link: '/packages/serverpod' },
         ],
       },
       {

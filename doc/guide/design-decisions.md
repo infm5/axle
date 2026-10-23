@@ -11,7 +11,7 @@ core, CLI, and adapter work — changes here require updating all three.
 | Annotation location | Top-level handler functions and DTO classes | The analyzer resolves them reliably; closures cannot carry metadata. |
 | Type mapping | Annotations carry `Type` literals plus nullable/optional flags | `UserDto?` is not valid Dart as a type literal. |
 | Output | `openapi.json` + `openapi.yaml` + Swagger UI assets + Dart `const` | Tooling artifacts, self-hosted docs, AOT-safe serving. |
-| Framework order | Relic, then Shelf | Concrete adapters validate the design before generalizing. |
+| Framework order | Relic, Shelf, then Serverpod | Concrete adapters validate the design before generalizing. |
 | Config source | `axle.yaml` + annotations | YAML owns global contract identity; code owns route/type facts. |
 | Swagger UI | Core HTML helper + adapter routes | Shared across adapters. |
 | Example tests | None | The example is an integration demo; `gen --check` is the verification. |
@@ -26,7 +26,7 @@ core, CLI, and adapter work — changes here require updating all three.
 
 ## Why not a runtime registry
 
-- Relic/Shelf routers expose no public route list.
+- Relic, Shelf, and Serverpod web servers expose no public route list.
 - No `dart:mirrors` in AOT.
 - Runtime registration duplicates route metadata and drifts from the spec.
 

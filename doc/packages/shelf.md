@@ -109,20 +109,25 @@ The complete runnable Todo API is at
 specs, generated `openapi.g.dart`, and local Swagger UI assets. If you only
 need the CDN-backed UI, omit `swaggerUiDirectory`.
 
-## Relic vs Shelf at a Glance
+## Adapter comparison
 
-Both adapters expose the same parameter names, defaults, and semantics because
-both delegate to `AxleDocs`. The only differences are framework-shaped:
+All three adapters expose the same parameter names, defaults, and semantics
+because they delegate to `AxleDocs`. The differences are framework-shaped:
 
-| Concern | `axle_relic` | `axle_shelf` |
-| --- | --- | --- |
-| Mounting | `app.mountAxleDocs(...)` extension on `RelicApp` | `axleDocsHandler(...)` returns a composable `Handler` |
-| Standalone spec | `openApiJsonHandler(specString)` | `openApiJsonHandler(axleDocs)` |
-| Standalone UI | `swaggerUiHandler(...)` with individual args | `swaggerUiHandler(axleDocs)` |
-| Assets | `mountSwaggerUiAssets(dir)` registers per-file routes | `swaggerUiAssetsHandler(dir)` returns a `shelf_static` handler |
-| Unknown routes | Relic router 404 | Handler returns `404`, composes with `Cascade` |
+| Concern | `axle_relic` | `axle_shelf` | `axle_serverpod` |
+| --- | --- | --- | --- |
+| Mounting | `app.mountAxleDocs(...)` on `RelicApp` | `axleDocsHandler(...)` returns a `Handler` | `pod.webServer.mountAxleDocs(...)` on `WebServer` |
+| Standalone spec | `openApiJsonHandler(specString)` | `openApiJsonHandler(axleDocs)` | `AxleOpenApiRoute(docs)` |
+| Standalone UI | `swaggerUiHandler(...)` | `swaggerUiHandler(axleDocs)` | `AxleDocsRoute(docs)` |
+| Assets | `mountSwaggerUiAssets(dir)` registers per-file routes | `swaggerUiAssetsHandler(dir)` uses `shelf_static` | `mountSwaggerUiAssets(dir)` uses `StaticRoute.directory` |
+| Unknown routes | Relic router 404 | Handler returns `404`, composes with `Cascade` | Serverpod router 404 |
+| Surface | Any Relic route | Any Shelf handler | Web-server `Route` only; not `Endpoint` RPC |
 
-A third adapter for any framework follows this same shape — see
+Serverpod's surface is intentionally narrower: it documents web-server
+`Route`s, not API-server `Endpoint` methods. See
+[axle_serverpod](/packages/serverpod).
+
+Another adapter for any framework follows this same shape — see
 [Building an Adapter](/adapters/building-an-adapter).
 
 ## Boundaries
@@ -131,3 +136,10 @@ A third adapter for any framework follows this same shape — see
 - Non-`GET` requests and unrelated paths get `404`, never method errors or redirects.
 - Relative directory paths resolve from the process working directory — use an
   absolute path in deployments if needed.
+
+## Other adapters
+
+- [axle_relic](/packages/relic) — Relic `RelicApp` routes.
+- [axle_serverpod](/packages/serverpod) — Serverpod web-server routes.
+- [Adapter comparison](/packages/#adapter-comparison) — mounting and asset
+  differences at a glance.

@@ -120,3 +120,10 @@ verified against a live server.
 - Does not bind application routes, validate requests, serialize responses, or
   enforce auth. Protect the docs routes with your own middleware if needed.
 - Targets Relic 2.0.0-rc.2; will move to stable Relic 2.x once published.
+
+## Other adapters
+
+- [axle_shelf](/packages/shelf) — composable Shelf handlers.
+- [axle_serverpod](/packages/serverpod) — Serverpod web-server routes.
+- [Adapter comparison](/packages/#adapter-comparison) — mounting and asset
+  differences at a glance.

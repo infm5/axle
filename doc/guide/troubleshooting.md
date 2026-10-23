@@ -58,9 +58,19 @@ commit the result. In CI, run `gen --check` instead of `gen`.
 - **Assets 404.** `swaggerUiDirectory` is resolved from the process working
   directory. Running the server from another directory breaks it; use an
   absolute path in deployments.
-- **Empty asset mount.** Relic's `mountSwaggerUiAssets` throws when the
-  directory is missing or contains no files — run `axle gen` first.
+- **Empty asset mount.** Relic's and Serverpod's `mountSwaggerUiAssets` throw
+  when the directory is missing or contains no files — run `axle gen` first.
 - **`swaggerUiPath` collisions.** The asset prefix must not be `/`, the spec
-  path, or the docs path; both adapters throw `ArgumentError` otherwise.
-- **Port conflicts.** Examples read `PORT`, default `8080`.
+  path, or the docs path; all three adapters throw `ArgumentError` otherwise.
+- **Serverpod docs on the wrong port.** REST routes and docs are mounted on
+  `pod.webServer` (example: `8082`), not the API server (`8090`). A `GET` to
+  `/greeting` on the API port is the RPC endpoint and returns `400`.
+- **Serverpod endpoint explorer.** `serverpod start` and Insights list
+  `Endpoint` methods only. Web-server routes do not appear there; open the
+  configured docs path on the web server port instead.
+- **Serverpod generated file cleanup.** `serverpod generate` deletes unknown
+  `.dart` files under `lib/src/generated/`. Keep `generate.output.dart` outside
+  that directory, for example `lib/src/axle/openapi.g.dart`.
+- **Port conflicts.** The Relic and Shelf examples read `PORT`, default `8080`.
+  The Serverpod example uses API `8090`, Insights `8091`, and web `8082`.
 - **Relic prerelease.** Pin `relic: ^2.0.0-rc.2` until stable 2.x ships.

@@ -5,7 +5,7 @@ import CodeCarousel from './CodeCarousel.vue'
 <template>
   <div class="ax-hero">
     <div class="ax-banner">
-      Pre-release docs · axle <strong>v0.1.0</strong> · packages on pub.dev soon
+      Early 0.1.0 docs · Relic, Shelf &amp; Serverpod adapters
       <a href="/guide/roadmap">View roadmap →</a>
     </div>
     <div class="ax-grid">
@@ -18,7 +18,7 @@ import CodeCarousel from './CodeCarousel.vue'
         <p class="ax-sub">
           Annotate your routes once — get a verified OpenAPI 3.1 spec and
           hosted Swagger UI on all of them. Universal adapters hook it up to
-          Relic and Shelf today, and to your framework tomorrow.
+          Relic, Shelf, and Serverpod today, and to your framework tomorrow.
         </p>
         <div class="ax-cta">
           <a class="ax-btn-primary" href="/guide/getting-started">Get Started <span>→</span></a>

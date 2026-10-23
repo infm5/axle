@@ -110,6 +110,62 @@ const tabs: Tab[] = [
       },
     ],
   },
+  {
+    id: 'serverpod',
+    label: 'Serverpod',
+    icon: '/serverpod.svg',
+    steps: [
+      {
+        title: 'Add dependencies',
+        code: `<span class="tk-param">dependencies</span>:
+  <span class="tk-param">axle_serverpod</span>: <span class="tk-str">^0.1.0</span>
+  <span class="tk-param">serverpod</span>: <span class="tk-str">^4.0.0</span>
+<span class="tk-param">dev_dependencies</span>:
+  <span class="tk-param">axle_cli</span>: <span class="tk-str">^0.1.0</span>`,
+      },
+      {
+        title: 'Create axle.yaml',
+        code: `<span class="tk-prompt">$</span> dart run axle_cli:axle init`,
+      },
+      {
+        title: 'Annotate a top-level handler',
+        code: `<span class="tk-ann">@ApiRoute</span>(
+  <span class="tk-param">method</span>: <span class="tk-type">ApiMethod</span>.get,
+  <span class="tk-param">path</span>: <span class="tk-str">'/greeting'</span>,
+  <span class="tk-param">responses</span>: [<span class="tk-type">ApiResponse</span>.<span class="tk-fn">ok</span>(<span class="tk-type">Greeting</span>)],
+)
+<span class="tk-kw">Future</span>&lt;<span class="tk-type">Response</span>&gt; <span class="tk-fn">greeting</span>(<span class="tk-type">Session</span> session, <span class="tk-type">Request</span> request) { ... }
+
+<span class="tk-kw">class</span> <span class="tk-type">GreetingRoute</span> <span class="tk-kw">extends</span> <span class="tk-type">Route</span> {
+  <span class="tk-type">GreetingRoute</span>() : <span class="tk-kw">super</span>(methods: {<span class="tk-type">Method</span>.get});
+  <span class="tk-ann">@override</span>
+  <span class="tk-kw">Future</span>&lt;<span class="tk-type">Result</span>&gt; <span class="tk-fn">handleCall</span>(<span class="tk-type">Session</span> session, <span class="tk-type">Request</span> request) =&gt;
+      <span class="tk-fn">greeting</span>(session, request);
+}`,
+      },
+      {
+        title: 'Generate the artifacts',
+        code: `<span class="tk-prompt">$</span> dart run axle_cli:axle gen
+<span class="tk-com"># openapi.json + openapi.yaml + assets/swagger-ui + openapi.g.dart</span>`,
+      },
+      {
+        title: 'Mount on the web server',
+        code: `pod.webServer.<span class="tk-fn">mountAxleDocs</span>(
+  <span class="tk-param">spec</span>: axleOpenApiJson,
+  <span class="tk-param">docsPath</span>: <span class="tk-str">'/swagger'</span>,
+  <span class="tk-param">swaggerUiDirectory</span>: <span class="tk-str">'assets/swagger-ui'</span>,
+);
+<span class="tk-kw">await</span> pod.<span class="tk-fn">start</span>();`,
+      },
+      {
+        title: 'Run and verify',
+        code: `<span class="tk-prompt">$</span> serverpod start
+<span class="tk-com"># web server (REST + docs) → http://localhost:8082/swagger</span>
+<span class="tk-com"># spec → http://localhost:8082/openapi.json</span>
+<span class="tk-com"># API/Endpoint server → 8090 (not the docs port)</span>`,
+      },
+    ],
+  },
 ]
 
 const active = ref('relic')
@@ -215,6 +271,7 @@ const active = ref('relic')
 .ax-tab img {
   border-radius: 5px;
   display: block;
+  object-fit: contain;
 }
 .ax-adapter-cta {
   display: inline-flex;
