@@ -2,6 +2,24 @@
 
 Shelf integration for axle.
 
+## Install
+
+```yaml
+dependencies:
+  axle_shelf: ^0.1.0
+  shelf: ^1.4.3
+
+dev_dependencies:
+  axle_cli: ^0.1.0
+```
+
+Generate the spec before the first run:
+
+```sh
+dart run axle_cli:axle init
+dart run axle_cli:axle gen
+```
+
 `axle_shelf` serves a generated OpenAPI document and Swagger UI from Shelf. It
 re-exports `axle_core` for one-import apps. It does not bind routes, validate
 requests, serialize responses, or enforce auth.

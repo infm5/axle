@@ -3,6 +3,17 @@
 Framework-agnostic OpenAPI 3.1 annotations, document model, and Swagger UI
 helpers for Dart servers.
 
+## Install
+
+Most apps get core transitively — `axle_relic` and `axle_shelf` re-export it.
+Depend on it directly only when building an adapter or using the document
+model standalone:
+
+```yaml
+dependencies:
+  axle_core: ^0.1.0
+```
+
 ```dart
 import 'package:axle_core/axle_core.dart';
 

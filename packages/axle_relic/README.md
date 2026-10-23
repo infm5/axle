@@ -2,6 +2,27 @@
 
 Relic integration for axle.
 
+## Install
+
+```yaml
+dependencies:
+  axle_relic: ^0.1.0
+  relic: ^2.0.0-rc.2
+
+dev_dependencies:
+  axle_cli: ^0.1.0
+```
+
+Generate the spec before the first run:
+
+```sh
+dart run axle_cli:axle init
+dart run axle_cli:axle gen
+```
+
+Relic 2.0.0 is currently a release candidate. Pin `^2.0.0-rc.2` until the
+stable 2.x release is available.
+
 `axle_relic` re-exports `axle_core`, so Relic apps get the annotations, document
 model, and docs helpers from one import.
 

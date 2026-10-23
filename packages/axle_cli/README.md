@@ -2,6 +2,21 @@
 
 The `axle` command-line interface.
 
+## Install
+
+As a dev dependency (recommended — `dart run` resolves it from your package):
+
+```yaml
+dev_dependencies:
+  axle_cli: ^0.1.0
+```
+
+Or globally, once published:
+
+```sh
+dart pub global activate axle_cli
+```
+
 ```sh
 dart run axle_cli:axle init
 dart run axle_cli:axle gen
