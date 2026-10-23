@@ -1,0 +1,17 @@
+openapi: 3.1.0
+info:
+  title: Relic Todo API
+  version: 0.1.0
+  description: A proper Relic Todo API demonstrating axle.
+  contact:
+    name: Axle Example
+    email: example@example.com
+  license:
+    name: MIT
+generate:
+  scan:
+    - lib
+  output:
+    json: openapi.json
+    ui: assets/swagger-ui
+    dart: lib/src/generated/openapi.g.dart

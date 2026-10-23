@@ -1,0 +1,12 @@
+openapi: "3.1.0"
+info:
+  title: "Shelf Todo Example"
+  version: "0.1.0"
+  description: "A Shelf Todo API demonstrating axle_shelf."
+generate:
+  scan:
+    - "lib"
+  output:
+    json: "build/openapi.json"
+    ui: "assets/swagger-ui"
+    dart: "lib/src/generated/openapi.g.dart"

@@ -1,0 +1,11 @@
+.dart_tool/
+.idea/
+build/
+coverage/
+dart-openapi-design.md
+.github/skills
+docs/
+.opencode/
+.cursor/
+.claude/
+.cline/

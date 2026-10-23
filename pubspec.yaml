@@ -1,0 +1,65 @@
+name: axle_workspace
+publish_to: none
+environment:
+  sdk: ">=3.12.2 <4.0.0"
+dev_dependencies:
+  coverage: ^1.16.0
+  melos: ^8.9.0
+workspace:
+  - packages/axle_core
+  - packages/axle_cli
+  - packages/axle_relic
+  - packages/axle_relic/example
+  - packages/axle_shelf
+  - packages/axle_shelf/example
+melos:
+  command:
+    run:
+      noSelect: true
+  scripts:
+    analyze:
+      description: Analyze the whole workspace.
+      run: dart analyze
+    test:
+      description: Run tests in every package that has a test directory.
+      exec:
+        command: dart test
+        concurrency: 1
+        failFast: true
+      packageFilters:
+        dirExists: test
+    format:
+      description: Verify formatting across all packages.
+      exec:
+        command: dart format --output=none --set-exit-if-changed .
+        concurrency: 1
+        failFast: true
+    gen-check:
+      description: Verify the Relic example specs, UI assets, and Dart artifact are current.
+      exec:
+        command: dart run axle_cli:axle gen --check
+      packageFilters:
+        scope: relic_todo_example
+    gen-check-shelf:
+      description: Verify the Shelf example specs, UI assets, and Dart artifact are current.
+      exec:
+        command: dart run axle_cli:axle gen --check
+      packageFilters:
+        scope: shelf_todo_example
+    coverage:
+      description: Run tests and write a Codecov-compatible LCOV report.
+      steps:
+        - rm -rf coverage
+        - dart run coverage:test_with_coverage --package=packages/axle_core --out=coverage/raw/axle_core --scope-output=axle_core --scope-output=axle_cli --scope-output=axle_relic --scope-output=axle_shelf --function-coverage
+        - dart run coverage:test_with_coverage --package=packages/axle_cli --out=coverage/raw/axle_cli --scope-output=axle_core --scope-output=axle_cli --scope-output=axle_relic --scope-output=axle_shelf --function-coverage
+        - dart run coverage:test_with_coverage --package=packages/axle_relic --out=coverage/raw/axle_relic --scope-output=axle_core --scope-output=axle_cli --scope-output=axle_relic --scope-output=axle_shelf --function-coverage
+        - dart run coverage:test_with_coverage --package=packages/axle_shelf --out=coverage/raw/axle_shelf --scope-output=axle_core --scope-output=axle_cli --scope-output=axle_relic --scope-output=axle_shelf --function-coverage
+        - dart run coverage:format_coverage --lcov --in=coverage/raw --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=packages --base-directory=. --check-ignore
+    check:
+      description: Run analysis, tests, formatting, and spec freshness checks.
+      steps:
+        - dart run melos run analyze
+        - dart run melos run test
+        - dart run melos run format
+        - dart run melos run gen-check
+        - dart run melos run gen-check-shelf

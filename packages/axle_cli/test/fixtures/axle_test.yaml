@@ -1,0 +1,11 @@
+openapi: 3.1.0
+info:
+  title: Axle CLI Test
+  version: 1.0.0
+generate:
+  scan:
+    - test/fixtures/api.dart
+  output:
+    json: .dart_tool/axle_test/openapi.json
+    ui: .dart_tool/axle_test/swagger-ui
+    dart: .dart_tool/axle_test/openapi.g.dart

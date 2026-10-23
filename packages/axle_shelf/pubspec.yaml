@@ -1,0 +1,25 @@
+name: axle_shelf
+description: Shelf integration for axle. Serves a generated OpenAPI spec and Swagger UI.
+version: 0.1.0
+homepage: https://github.com/infmslabs/axle
+repository: https://github.com/infmslabs/axle
+issue_tracker: https://github.com/infmslabs/axle/issues
+topics:
+  - openapi
+  - swagger
+  - shelf
+  - api-documentation
+resolution: workspace
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  axle_core: ^0.1.0
+  shelf: ^1.4.3
+  shelf_static: ^1.2.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  path: ^1.9.1
+  test: ^1.25.10

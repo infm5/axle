@@ -1,0 +1,19 @@
+name: shelf_todo_example
+description: A Shelf Todo API demonstrating axle_shelf.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  axle_shelf:
+    path: ../
+  shelf: ^1.4.3
+  shelf_router: ^1.1.5
+
+dev_dependencies:
+  axle_cli:
+    path: ../../axle_cli
+  lints: ^6.0.0

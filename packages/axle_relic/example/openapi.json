@@ -1,0 +1,406 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Relic Todo API",
+    "version": "0.1.0",
+    "description": "A proper Relic Todo API demonstrating axle.",
+    "contact": {
+      "name": "Axle Example",
+      "email": "example@example.com"
+    },
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Check service health",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/todos": {
+      "get": {
+        "tags": [
+          "Todos"
+        ],
+        "summary": "List todos",
+        "operationId": "listTodos",
+        "parameters": [
+          {
+            "name": "completed",
+            "in": "query",
+            "description": "Filter by completion state.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of todos to return.",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Todo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Todos"
+        ],
+        "summary": "Create a todo",
+        "operationId": "createTodo",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTodo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/todos/{id}": {
+      "get": {
+        "tags": [
+          "Todos"
+        ],
+        "summary": "Get a todo",
+        "operationId": "getTodo",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The todo id.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Todos"
+        ],
+        "summary": "Delete a todo",
+        "operationId": "deleteTodo",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The todo id.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Todos"
+        ],
+        "summary": "Update a todo",
+        "operationId": "updateTodo",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The todo id.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTodo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "A stable machine-readable error code."
+          },
+          "message": {
+            "type": "string",
+            "description": "A human-readable error message."
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "description": "An API error."
+      },
+      "CreateTodo": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An optional longer description."
+          },
+          "title": {
+            "type": "string",
+            "description": "The todo title."
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "description": "The request body for creating a todo."
+      },
+      "Health": {
+        "type": "object",
+        "properties": {
+          "checked_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the check was performed."
+          },
+          "status": {
+            "type": "string",
+            "description": "The service status."
+          }
+        },
+        "required": [
+          "checked_at",
+          "status"
+        ],
+        "description": "A health check response."
+      },
+      "Todo": {
+        "type": "object",
+        "properties": {
+          "completed": {
+            "type": "boolean",
+            "description": "Whether the todo is complete."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the todo was created."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An optional longer description."
+          },
+          "id": {
+            "type": "integer",
+            "description": "The numeric id."
+          },
+          "title": {
+            "type": "string",
+            "description": "The todo title."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the todo was last updated."
+          }
+        },
+        "required": [
+          "completed",
+          "created_at",
+          "id",
+          "title",
+          "updated_at"
+        ],
+        "description": "A todo item."
+      },
+      "UpdateTodo": {
+        "type": "object",
+        "properties": {
+          "completed": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "The new completion state, when changing it."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The new description, when changing it."
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The new title, when changing it."
+          }
+        },
+        "description": "The request body for updating a todo."
+      }
+    }
+  }
+}

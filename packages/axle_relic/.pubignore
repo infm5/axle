@@ -1,0 +1,5 @@
+.dart_tool/
+coverage/
+doc/
+example/assets/swagger-ui/
+*.iml
