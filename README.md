@@ -195,9 +195,7 @@ hashes.
 ## Development
 
 See [`docs/axle-roadmap.md`](docs/axle-roadmap.md) for the full design, scope,
-current status, and roadmap. See
-[`docs/release-checklist.md`](docs/release-checklist.md) for publication
-blockers and verification steps.
+current status, and roadmap.
 
 ```sh
 dart pub get

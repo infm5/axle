@@ -1,9 +1,9 @@
 name: axle_cli
 description: Command-line tool for generating OpenAPI specs from annotated Dart servers.
 version: 0.1.0
-homepage: https://github.com/infmslabs/axle
-repository: https://github.com/infmslabs/axle
-issue_tracker: https://github.com/infmslabs/axle/issues
+homepage: https://github.com/infm5/axle
+repository: https://github.com/infm5/axle
+issue_tracker: https://github.com/infm5/axle/issues
 topics:
   - openapi
   - swagger

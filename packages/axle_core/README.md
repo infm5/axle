@@ -36,7 +36,7 @@ docs.headers;  // {'cache-control': 'no-store'}
 ```
 
 Adapters only translate these values into their framework's response type. See
-the [adapter authoring guide](https://github.com/infmslabs/axle/blob/main/docs/adapter-authoring.md) and the
+the [adapter authoring guide](https://github.com/infm5/axle/blob/master/docs/adapter-authoring.md) and the
 `axle_relic`/`axle_shelf` packages for reference implementations.
 
 The default Swagger UI URL is pinned to 5.34.0 and includes SRI hashes. For

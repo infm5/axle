@@ -51,6 +51,6 @@ responses, tags, summaries, descriptions, operation ids, deprecation, DTO schema
 nested DTOs, enums, `List`/`Set`, `Map<String, T>`, nullability, `@JsonKey(name:)`,
 and `@ApiProperty` overrides.
 
-See the root [README](https://github.com/infmslabs/axle/blob/main/README.md) for the project overview and
-[`docs/adapter-authoring.md`](https://github.com/infmslabs/axle/blob/main/docs/adapter-authoring.md) for the adapter
+See the root [README](https://github.com/infm5/axle/blob/master/README.md) for the project overview and
+[`docs/adapter-authoring.md`](https://github.com/infm5/axle/blob/master/docs/adapter-authoring.md) for the adapter
 contract.

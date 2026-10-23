@@ -50,5 +50,5 @@ compose the asset handler yourself.
 
 See [`example/`](example/) for a complete Shelf Todo API with a router,
 generated spec, and local Swagger UI assets. See the
-[adapter authoring guide](https://github.com/infmslabs/axle/blob/main/docs/adapter-authoring.md)
+[adapter authoring guide](https://github.com/infm5/axle/blob/master/docs/adapter-authoring.md)
 for the framework-neutral contract.

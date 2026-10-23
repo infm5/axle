@@ -48,7 +48,7 @@ The standalone `mountSwaggerUiAssets(directory)` method is available for custom
 composition.
 
 See [`example/`](example/) for a complete Relic Todo API and
-[`docs/adapter-authoring.md`](https://github.com/infmslabs/axle/blob/main/docs/adapter-authoring.md) for the shared
+[`docs/adapter-authoring.md`](https://github.com/infm5/axle/blob/master/docs/adapter-authoring.md) for the shared
 adapter contract.
 
 The package targets Relic 2.0.0-rc.2 and will move to the stable Relic 2.x line
