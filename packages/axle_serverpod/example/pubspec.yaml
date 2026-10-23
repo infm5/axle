@@ -1,0 +1,10 @@
+name: axle_serverpod_example
+publish_to: none
+
+environment:
+  sdk: '^3.12.2'
+
+workspace:
+  - axle_serverpod_example_client
+  - axle_serverpod_example_server
+

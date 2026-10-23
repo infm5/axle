@@ -1,0 +1,7 @@
+.dart_tool/
+coverage/
+doc/
+*.iml
+example/pubspec.lock
+example/**/.dart_tool/
+example/axle_serverpod_example_server/assets/swagger-ui/

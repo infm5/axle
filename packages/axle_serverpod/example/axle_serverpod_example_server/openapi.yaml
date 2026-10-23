@@ -1,0 +1,46 @@
+openapi: "3.1.0"
+info:
+  title: "Axle Serverpod Greeting API"
+  version: "0.1.0"
+  description: "A Serverpod mini app serving a generated OpenAPI document."
+paths:
+  "/greeting":
+    get:
+      tags:
+        - Greeting
+      summary: "Get a greeting"
+      operationId: getGreeting
+      parameters:
+        - name: name
+          in: query
+          description: "The name to greet."
+          required: false
+          schema:
+            type: string
+            default: World
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Greeting"
+components:
+  schemas:
+    Greeting:
+      type: object
+      properties:
+        author:
+          type: string
+          description: "The author of the greeting message."
+        message:
+          type: string
+          description: "The greeting message."
+        timestamp:
+          type: string
+          format: date-time
+          description: "The time when the message was created."
+      required:
+        - author
+        - message
+        - timestamp

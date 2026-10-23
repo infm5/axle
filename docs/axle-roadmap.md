@@ -57,7 +57,7 @@ axle should produce a trustworthy contract and stay out of runtime behavior it d
 - Server URL configuration in `axle.yaml`.
 - Swagger UI URL configuration in `axle.yaml`.
 - Top-level tag descriptions in `axle.yaml`.
-- Serverpod or Dart Frog adapters.
+- Dart Frog adapter. Serverpod is covered in Phase 2.
 - Class/method endpoint discovery.
 - Build runner integration.
 - Multiple specs per package.
@@ -566,10 +566,62 @@ Do not add security to `axle.yaml` until axle can truthfully represent and valid
 - [x] Extract the `AxleDocs` contract from `axle_relic`.
 - [x] Add `axle_shelf`.
 - [x] Generate local Swagger UI assets into `generate.output.ui`.
-- Add `axle_serverpod` using Serverpod route/type conventions.
+- [x] Add `axle_serverpod` (plan researched 2026-10-23 against Serverpod 4.x; see
+  `axle_serverpod` plan below).
 - Add `axle_dart_frog` if it adds value beyond Shelf.
 
 **Exit criteria:** each adapter serves the same generated artifact with no core/cli changes.
+
+#### `axle_serverpod` plan
+
+Serverpod exposes two HTTP surfaces; only one is documentable as REST:
+
+- **API-server endpoints** (`Endpoint` subclasses) speak the binary Serverpod
+  protocol over POST. No HTTP method semantics, no status codes. Describing
+  them in OpenAPI would be fiction — explicitly out of scope, permanently.
+- **Web-server routes** (`Route` subclasses via `pod.webServer.addRoute`) are
+  real HTTP: method filtering with automatic 405s, `:param` segments,
+  wildcards, startup conflict detection. Primitives are Relic-derived
+  (`Body.fromString`, `MimeType`, `Response.ok`). This is the adapter surface.
+
+Serve-only, mirroring the adapter contract — no core or CLI changes:
+
+```dart
+pod.webServer.addRoute(
+  AxleDocsRoute(
+    spec: axleOpenApiJson,
+    swaggerUiDirectory: 'assets/swagger-ui',
+  ),
+  '/docs',
+);
+```
+
+- Implemented as `WebServer.mountAxleDocs`: `AxleOpenApiRoute` serves the spec,
+  `AxleDocsRoute` serves the UI, and `StaticRoute.directory` serves local assets.
+  Paths stay absolute (`/openapi.json`, `/docs`, `/docs-assets` by default), so
+  the UI's spec URL is correct regardless of mount points.
+- `AxleDocs` keeps owning paths, title, cache, and HTML; the routes only
+  translate. Re-export `axle_core` like the other adapters.
+- Local UI assets use Serverpod's `StaticRoute`; Relic's static handler resolves
+  files from `remainingPath` and rejects traversal outside the root. The
+  adapter validates the directory exists before registering routes.
+- Docs serve from the **web server port**, not the API server port — the
+  adapter README states this explicitly.
+
+Generation gap: `axle gen` discovers `@ApiRoute` on top-level functions, but
+Serverpod REST handlers are `handleCall` methods on `Route` subclasses.
+Chosen pattern (no core changes): annotate a top-level function, delegate
+from a thin `Route` class, register the same path in `addRoute`. Derive the
+`addRoute` path and the annotation path from a shared constant — the two
+strings can otherwise drift (accepted Swaggo-model cost). Method discovery in
+core (option B) stays deferred until a second framework demands it; it must
+not be un-deferred for one adapter.
+
+Effort: comparable to `axle_shelf`. `StaticRoute` traversal behavior was
+verified in the Relic 2.0 static handler before implementation.
+
+The adapter requires Serverpod 4.x, which uses Relic 2.x. `axle_relic` moved
+from Relic 1.2.0 to 2.0.0-rc.2 so the workspace resolves one Relic major.
 
 ### Phase 3 — Security metadata
 

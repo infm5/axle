@@ -22,6 +22,7 @@ without `dart:mirrors` or a runtime registry.
 | `axle_cli` | `axle init` and `axle gen`, analyzer-based source scanning, JSON/YAML/Dart artifacts, and self-hosted Swagger UI assets. |
 | `axle_relic` | Relic adapter for `mountAxleDocs(...)` and standalone handlers. Re-exports core for Relic apps. |
 | `axle_shelf` | Shelf adapter with composable handlers and local-asset support. |
+| `axle_serverpod` | Serverpod adapter for web-server routes. Serving only; RPC endpoints are out of scope. |
 
 ## Quick start
 
@@ -176,8 +177,8 @@ out of date, which is useful in CI.
   serialize responses. Use your server framework for that.
 - Wildcard routes (`*`, `/**`) cannot be represented in OpenAPI. Add
   `ignore: true` to their annotation.
-- Relic 2.0.0-rc.2 and Shelf are the current adapter targets. Serverpod and Dart
-  Frog adapters are not included yet.
+- Relic 2.0.0-rc.2, Shelf, and Serverpod 4.x are the current adapter targets.
+  The Dart Frog adapter is not included yet.
 - Global `json_serializable` field renaming is not read yet. Use `@JsonKey` or
   `@ApiProperty` for custom names.
 
@@ -185,7 +186,8 @@ out of date, which is useful in CI.
 
 The shared adapter contract is [`AxleDocs`](docs/adapter-authoring.md). Adapters
 serve the generated spec and UI; they do not bind routes or serialize responses.
-Use `axle_relic` or `axle_shelf` as the reference implementations.
+Use `axle_relic`, `axle_shelf`, or `axle_serverpod` as the reference
+implementations.
 
 `axle gen` writes Swagger UI 5.34.0 into `generate.output.ui`. Pass that
 directory to an adapter to self-host the UI; no extra asset package is required.

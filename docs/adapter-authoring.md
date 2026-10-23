@@ -58,7 +58,8 @@ framework supports composable handlers.
 
 ## Reference implementation
 
-`axle_relic` and `axle_shelf` are the reference implementations. A minimal
+`axle_relic`, `axle_shelf`, and `axle_serverpod` are the reference
+implementations. A minimal
 adapter is roughly:
 
 ```dart

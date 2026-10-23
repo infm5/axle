@@ -1,0 +1,59 @@
+# This is the configuration file for your local development environment.
+# The example runs without a database or Redis; the API server uses port 8090
+# and the web server (REST routes + docs) uses port 8082.
+#
+# When running your server locally, the server ports are the same as the public
+# facing ports.
+
+# Configuration for the main API server.
+apiServer:
+  port: 8090
+  publicHost: localhost
+  publicPort: 8090
+  publicScheme: http
+
+# Configuration for the Insights server.
+insightsServer:
+  port: 8091
+  publicHost: localhost
+  publicPort: 8091
+  publicScheme: http
+
+# Configuration for the web server. The axle docs and the REST routes are
+# served on this port, not on the API server port above.
+webServer:
+  port: 8082
+  publicHost: localhost
+  publicPort: 8082
+  publicScheme: http
+
+
+
+
+maxRequestSize: 524288 # The maximum size of requests allowed in bytes
+
+sessionLogs:
+  consoleEnabled: true
+  consoleLogFormat: text # Defaults to "json", options are "text" or "json"
+
+#futureCall:
+#  enabled: true # Defaults to true, set to false to disable scheduling and running future calls
+#  executionEnabled: true # Defaults to true
+#  concurrencyLimit: 1 # Defaults to 1, a negative or null value removes the limit
+#  scanInterval: 5000 # Unit in milliseconds, defaults to 5000
+
+# Recommended when serving web clients: keeps auth tokens in httpOnly
+# cookies. Without this, web tokens live in JavaScript-readable storage,
+# where any XSS can steal them. Web clients opt in with
+# `client.cookieAuth = true`. Requires `allowedOrigins`; browsers from
+# origins not in the list lose cross-origin access, including to public
+# endpoints.
+#authCookie:
+#  secure: false # Cookies require https; relax only for http://localhost
+#  #name: serverpod_auth # Defaults to "serverpod_auth"
+#  #refreshName: serverpod_auth_refresh # Defaults to "<name>_refresh"
+#  #domain: example.com # Defaults to host-only; set to share across subdomains
+#  #path: / # Defaults to "/"
+#  #sameSite: lax # Defaults to "lax", options are "strict" or "none"
+#allowedOrigins:
+#  - http://localhost:8082 # The origin serving your Flutter web app

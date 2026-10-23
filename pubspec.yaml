@@ -12,6 +12,7 @@ workspace:
   - packages/axle_relic/example
   - packages/axle_shelf
   - packages/axle_shelf/example
+  - packages/axle_serverpod
 melos:
   command:
     run:
@@ -46,14 +47,18 @@ melos:
         command: dart run axle_cli:axle gen --check
       packageFilters:
         scope: shelf_todo_example
+    check-serverpod-example:
+      description: Analyze the Serverpod example and verify its generated artifacts.
+      run: bash -c 'cd packages/axle_serverpod/example && dart pub get && cd axle_serverpod_example_server && dart analyze && dart run axle_cli:axle gen --check'
     coverage:
       description: Run tests and write a Codecov-compatible LCOV report.
       steps:
         - rm -rf coverage
-        - dart run coverage:test_with_coverage --package=packages/axle_core --out=coverage/raw/axle_core --scope-output=axle_core --scope-output=axle_cli --scope-output=axle_relic --scope-output=axle_shelf --function-coverage
-        - dart run coverage:test_with_coverage --package=packages/axle_cli --out=coverage/raw/axle_cli --scope-output=axle_core --scope-output=axle_cli --scope-output=axle_relic --scope-output=axle_shelf --function-coverage
-        - dart run coverage:test_with_coverage --package=packages/axle_relic --out=coverage/raw/axle_relic --scope-output=axle_core --scope-output=axle_cli --scope-output=axle_relic --scope-output=axle_shelf --function-coverage
-        - dart run coverage:test_with_coverage --package=packages/axle_shelf --out=coverage/raw/axle_shelf --scope-output=axle_core --scope-output=axle_cli --scope-output=axle_relic --scope-output=axle_shelf --function-coverage
+        - dart run coverage:test_with_coverage --package=packages/axle_core --out=coverage/raw/axle_core --scope-output=axle_core --scope-output=axle_cli --scope-output=axle_relic --scope-output=axle_shelf --scope-output=axle_serverpod --function-coverage
+        - dart run coverage:test_with_coverage --package=packages/axle_cli --out=coverage/raw/axle_cli --scope-output=axle_core --scope-output=axle_cli --scope-output=axle_relic --scope-output=axle_shelf --scope-output=axle_serverpod --function-coverage
+        - dart run coverage:test_with_coverage --package=packages/axle_relic --out=coverage/raw/axle_relic --scope-output=axle_core --scope-output=axle_cli --scope-output=axle_relic --scope-output=axle_shelf --scope-output=axle_serverpod --function-coverage
+        - dart run coverage:test_with_coverage --package=packages/axle_shelf --out=coverage/raw/axle_shelf --scope-output=axle_core --scope-output=axle_cli --scope-output=axle_relic --scope-output=axle_shelf --scope-output=axle_serverpod --function-coverage
+        - dart run coverage:test_with_coverage --package=packages/axle_serverpod --out=coverage/raw/axle_serverpod --scope-output=axle_core --scope-output=axle_cli --scope-output=axle_relic --scope-output=axle_shelf --scope-output=axle_serverpod --function-coverage
         - dart run coverage:format_coverage --lcov --in=coverage/raw --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=packages --base-directory=. --check-ignore
     check:
       description: Run analysis, tests, formatting, and spec freshness checks.
@@ -63,3 +68,4 @@ melos:
         - dart run melos run format
         - dart run melos run gen-check
         - dart run melos run gen-check-shelf
+        - dart run melos run check-serverpod-example
