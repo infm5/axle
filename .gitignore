@@ -5,6 +5,8 @@ coverage/
 dart-openapi-design.md
 .github/skills
 docs/release-checklist.md
+docs/release-automation.md
+
 .opencode/
 .cursor/
 .claude/

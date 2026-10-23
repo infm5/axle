@@ -1,0 +1,257 @@
+openapi: "3.1.0"
+info:
+  title: "Shelf Todo Example"
+  version: "0.1.0"
+  description: "A Shelf Todo API demonstrating axle_shelf."
+paths:
+  "/health":
+    get:
+      tags:
+        - System
+      summary: "Check service health"
+      operationId: health
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Health"
+  "/notes":
+    get:
+      tags:
+        - Notes
+      summary: "List notes"
+      operationId: listNotes
+      parameters:
+        - name: completed
+          in: query
+          description: "Filter by completion state."
+          required: false
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          description: "Maximum number of notes to return."
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Note"
+        "400":
+          description: "Bad Request"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+    post:
+      tags:
+        - Notes
+      summary: "Create a note"
+      operationId: createNote
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/CreateNote"
+      responses:
+        "201":
+          description: Created
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Note"
+        "400":
+          description: "Bad Request"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/notes/{id}":
+    get:
+      tags:
+        - Notes
+      summary: "Get a note"
+      operationId: getNote
+      parameters:
+        - name: id
+          in: path
+          description: "The note id."
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Note"
+        "400":
+          description: "Bad Request"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Not Found"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+    delete:
+      tags:
+        - Notes
+      summary: "Delete a note"
+      operationId: deleteNote
+      parameters:
+        - name: id
+          in: path
+          description: "The note id."
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: "No Content"
+        "400":
+          description: "Bad Request"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Not Found"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+    patch:
+      tags:
+        - Notes
+      summary: "Update a note"
+      operationId: updateNote
+      parameters:
+        - name: id
+          in: path
+          description: "The note id."
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/UpdateNote"
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Note"
+        "400":
+          description: "Bad Request"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+        "404":
+          description: "Not Found"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+components:
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        code:
+          type: string
+          description: "A stable error code."
+        message:
+          type: string
+          description: "A human-readable message."
+      required:
+        - code
+        - message
+    CreateNote:
+      type: object
+      properties:
+        description:
+          type:
+            - string
+            - "null"
+          description: "An optional longer description."
+        title:
+          type: string
+          description: "The note title."
+      required:
+        - title
+    Health:
+      type: object
+      properties:
+        checkedAt:
+          type: string
+          format: date-time
+          description: "When the check ran."
+        status:
+          type: string
+          description: "The service status."
+      required:
+        - checkedAt
+        - status
+    Note:
+      type: object
+      properties:
+        completed:
+          type: boolean
+          description: "Whether the note is completed."
+        createdAt:
+          type: string
+          format: date-time
+          description: "When the note was created."
+        description:
+          type:
+            - string
+            - "null"
+          description: "An optional longer description."
+        id:
+          type: integer
+          description: "The numeric note id."
+        title:
+          type: string
+          description: "The note title."
+      required:
+        - completed
+        - createdAt
+        - id
+        - title
+    UpdateNote:
+      type: object
+      properties:
+        completed:
+          type:
+            - boolean
+            - "null"
+          description: "The new completion state."
+        description:
+          type:
+            - string
+            - "null"
+          description: "The new description."
+        title:
+          type:
+            - string
+            - "null"
+          description: "The new title."

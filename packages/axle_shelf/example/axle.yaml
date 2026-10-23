@@ -7,6 +7,6 @@ generate:
   scan:
     - "lib"
   output:
-    json: "build/openapi.json"
+    json: "openapi.json"
     ui: "assets/swagger-ui"
     dart: "lib/src/generated/openapi.g.dart"

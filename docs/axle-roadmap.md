@@ -586,7 +586,8 @@ Do not add security to `axle.yaml` until axle can truthfully represent and valid
 - Publish `axle_core`, `axle_cli`, `axle_relic`, and `axle_shelf`.
 - [x] Replace publishable-package path dependencies with version constraints.
 - [x] Add repository/homepage/issue-tracker metadata and `.pubignore` files.
-- Add project license files and release automation.
+- [x] Add per-package tag-driven pub.dev publishing workflows with OIDC.
+- [x] Add MIT license files to every publishable package.
 - Document supported Dart/analyzer/framework versions.
 
 **Exit criteria:** packages install from pub.dev; example works from a clean checkout.
@@ -613,6 +614,8 @@ Keep:
 - `melos run coverage` produces `coverage/lcov.info` for Codecov.
 - `axle_shelf` tests and both example `gen --check` runs are included in the workspace.
 - Example `gen --check` through the `gen-check` script.
+- Per-package tag workflows run package analysis/tests and publish to pub.dev
+  through OIDC; see `docs/release-automation.md`.
 
 Do not add:
 

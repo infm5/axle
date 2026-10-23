@@ -51,7 +51,7 @@ curl -X DELETE http://localhost:8080/notes/1
 - `lib/src/repositories/note_repository.dart` — in-memory repository.
 - `lib/src/routes/note_routes.dart` — annotated Shelf handlers and router setup.
 - `lib/src/generated/openapi.g.dart` — generated AOT-safe spec.
-- `build/openapi.json` / `build/openapi.yaml` — generated specs for tooling.
+- `openapi.json` / `openapi.yaml` — generated specs for tooling.
 - `assets/swagger-ui/` — generated Swagger UI assets served locally.
 - `bin/server.dart` — Shelf composition with API, docs, and local assets.
 
