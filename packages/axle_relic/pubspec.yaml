@@ -17,7 +17,7 @@ dependencies:
   axle_core: ^0.1.0
   mime: ^2.0.0
   path: ^1.9.1
-  relic: ^2.0.0-rc.2
+  relic: ^1.2.0
 
 dev_dependencies:
   lints: ^6.0.0

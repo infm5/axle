@@ -10,7 +10,7 @@ environment:
 dependencies:
   axle_relic:
     path: ../
-  relic: ^2.0.0-rc.2
+  relic: ^1.2.0
 
 dev_dependencies:
   axle_cli:
