@@ -1,5 +1,11 @@
 # axle
 
+[![CI](https://github.com/infm5/axle/actions/workflows/ci.yml/badge.svg)](https://github.com/infm5/axle/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/infm5/axle/branch/master/graph/badge.svg?token=1gPsrCSoXr)](https://codecov.io/gh/infm5/axle)
+[![pub package](https://img.shields.io/pub/v/axle_core.svg)](https://pub.dev/packages/axle_core)
+[![Dart SDK](https://img.shields.io/badge/Dart-%3E%3D3.12-blue?logo=dart)](https://dart.dev/get-dart)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 OpenAPI 3.1 documentation for Dart servers, with adapters for
 [Relic](https://pub.dev/packages/relic), [Shelf](https://pub.dev/packages/shelf),
 and Serverpod 4 web-server routes.
