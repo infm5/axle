@@ -6,11 +6,11 @@ Shelf integration for axle.
 
 ```yaml
 dependencies:
-  axle_shelf: ^0.1.0
+  axle_shelf: ^0.2.0
   shelf: ^1.4.3
 
 dev_dependencies:
-  axle_cli: ^0.1.0
+  axle_cli: ^0.2.0
 ```
 
 Generate the spec before the first run:
@@ -67,6 +67,12 @@ The standalone `swaggerUiAssetsHandler(directory)` is available when you need to
 compose the asset handler yourself.
 
 See [`example/`](example/) for a complete Shelf Todo API with a router,
-generated spec, and local Swagger UI assets. See the
+generated spec, and local Swagger UI assets. It also demonstrates API key
+security, response headers, cookies, content negotiation, constraints, `oneOf`
+schemas, and multipart uploads. See the
 [adapter authoring guide](https://github.com/infm5/axle/blob/master/docs/adapter-authoring.md)
 for the framework-neutral contract.
+
+The adapter serves the generated OpenAPI document verbatim, including
+`securitySchemes`, `security`, response headers, cookies, and media types. It
+does not enforce security; the example handlers show application-owned checks.

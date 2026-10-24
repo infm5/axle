@@ -3,5 +3,6 @@ coverage/
 doc/
 *.iml
 example/pubspec.lock
+example/pubspec_overrides.yaml
 example/**/.dart_tool/
 example/axle_serverpod_example_server/assets/swagger-ui/

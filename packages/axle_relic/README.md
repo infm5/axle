@@ -6,11 +6,11 @@ Relic integration for axle.
 
 ```yaml
 dependencies:
-  axle_relic: ^0.1.0
+  axle_relic: ^0.2.0
   relic: ^2.0.0-rc.2
 
 dev_dependencies:
-  axle_cli: ^0.1.0
+  axle_cli: ^0.2.0
 ```
 
 Generate the spec before the first run:
@@ -68,9 +68,15 @@ the process working directory; use an absolute path in deployments if needed.
 The standalone `mountSwaggerUiAssets(directory)` method is available for custom
 composition.
 
-See [`example/`](example/) for a complete Relic Todo API and
-[`docs/adapter-authoring.md`](https://github.com/infm5/axle/blob/master/docs/adapter-authoring.md) for the shared
-adapter contract.
+See [`example/`](example/) for a complete Relic Todo API that also demonstrates
+API key security, response headers, cookies, content negotiation, constraints,
+`oneOf` schemas, and multipart uploads. See
+[`docs/adapter-authoring.md`](https://github.com/infm5/axle/blob/master/docs/adapter-authoring.md)
+for the shared adapter contract.
+
+The adapter serves the generated OpenAPI document verbatim, including
+`securitySchemes`, `security`, response headers, cookies, and media types. It
+does not enforce security; the example handlers show application-owned checks.
 
 The package targets Relic 2.0.0-rc.2 and will move to the stable Relic 2.x line
 once it is published.

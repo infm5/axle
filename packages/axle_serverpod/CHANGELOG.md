@@ -1,6 +1,6 @@
-# 0.1.0
+## 0.2.0
 
-- Initial Serverpod adapter.
+- Initial public release, aligned with axle 0.2.0.
 - `WebServer.mountAxleDocs` for serving the OpenAPI document and Swagger UI.
 - `AxleDocsRoute` and `AxleOpenApiRoute` for manual route registration.
 - Local Swagger UI assets served by `StaticRoute.directory`.

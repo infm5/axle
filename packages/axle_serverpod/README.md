@@ -7,11 +7,11 @@ Swagger UI from Serverpod's web server.
 
 ```yaml
 dependencies:
-  axle_serverpod: ^0.1.0
+  axle_serverpod: ^0.2.0
   serverpod: ^4.0.0
 
 dev_dependencies:
-  axle_cli: ^0.1.0
+  axle_cli: ^0.2.0
 ```
 
 Generate the spec before the first run:

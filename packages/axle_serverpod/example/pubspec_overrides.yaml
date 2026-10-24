@@ -1,0 +1,5 @@
+# Keep the Serverpod example on the local core while developing the workspace.
+# This file is excluded from the published axle_serverpod archive.
+dependency_overrides:
+  axle_core:
+    path: ../../axle_core

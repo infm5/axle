@@ -2,12 +2,17 @@ import 'dart:convert';
 
 import 'package:shelf/shelf.dart';
 
-/// Encodes [body] as a JSON response.
-Response jsonResponse(Object? body, {int status = 200}) {
+/// Encodes [body] as a JSON response with optional [headers] and content type.
+Response jsonResponse(
+  Object? body, {
+  int status = 200,
+  Map<String, String> headers = const {},
+  String contentType = 'application/json',
+}) {
   return Response(
     status,
     body: jsonEncode(body),
-    headers: {'content-type': 'application/json'},
+    headers: {'content-type': contentType, ...headers},
   );
 }
 

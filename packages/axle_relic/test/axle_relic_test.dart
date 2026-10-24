@@ -8,6 +8,33 @@ import 'package:test/test.dart';
 const _spec =
     '{"openapi":"3.1.0","info":{"title":"Test","version":"1.0.0"},"paths":{}}';
 
+const _contractSpec = '''
+{
+  "openapi": "3.1.0",
+  "info": {"title": "Contract", "version": "1.0.0"},
+  "components": {
+    "securitySchemes": {
+      "apiKey": {"type": "apiKey", "in": "header", "name": "X-API-Key"}
+    }
+  },
+  "paths": {
+    "/secure": {
+      "get": {
+        "security": [{"apiKey": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Total-Count": {"schema": {"type": "integer"}}
+            }
+          }
+        }
+      }
+    }
+  }
+}
+''';
+
 void main() {
   group('mountAxleDocs', () {
     test('serves the generated spec as JSON', () async {
@@ -21,6 +48,18 @@ void main() {
       expect(response.statusCode, 200);
       expect(await response.readAsString(), _spec);
       expect(response.headers['cache-control'], contains('no-store'));
+    });
+
+    test('serves richer contracts verbatim', () async {
+      final app = RelicApp()..mountAxleDocs(spec: _contractSpec);
+
+      final response = await _response(
+        _handlerFor(app, '/openapi.json'),
+        '/openapi.json',
+      );
+
+      expect(response.statusCode, 200);
+      expect(await response.readAsString(), _contractSpec);
     });
 
     test('derives the UI title from the spec when title is omitted', () async {

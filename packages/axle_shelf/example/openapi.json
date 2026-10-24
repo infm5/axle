@@ -2,8 +2,22 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Shelf Todo Example",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "A Shelf Todo API demonstrating axle_shelf."
+  },
+  "tags": [
+    {
+      "name": "System",
+      "description": "Service metadata."
+    },
+    {
+      "name": "Notes",
+      "description": "Note operations."
+    }
+  ],
+  "externalDocs": {
+    "url": "https://github.com/infm5/axle",
+    "description": "axle documentation."
   },
   "paths": {
     "/health": {
@@ -50,7 +64,9 @@
             "description": "Maximum number of notes to return.",
             "required": false,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
             }
           }
         ],
@@ -99,6 +115,14 @@
         "responses": {
           "201": {
             "description": "Created",
+            "headers": {
+              "Location": {
+                "description": "URL of the created note.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -109,6 +133,185 @@
           },
           "400": {
             "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notes/activity": {
+      "get": {
+        "tags": [
+          "Notes"
+        ],
+        "summary": "List note activity",
+        "operationId": "noteActivity",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NoteEvent"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notes/import": {
+      "post": {
+        "tags": [
+          "Notes"
+        ],
+        "summary": "Import notes from a multipart upload",
+        "operationId": "importNotes",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteImport"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The upload was accepted.",
+            "headers": {
+              "Location": {
+                "description": "The import collection URL.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notes/stats": {
+      "get": {
+        "tags": [
+          "Notes"
+        ],
+        "summary": "Get note statistics",
+        "operationId": "noteStats",
+        "parameters": [
+          {
+            "name": "window",
+            "in": "query",
+            "description": "The subset used for the matching count.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "active",
+                "completed"
+              ],
+              "default": "all"
+            }
+          },
+          {
+            "name": "session",
+            "in": "cookie",
+            "description": "Optional session id echoed in X-Session.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Note statistics.",
+            "headers": {
+              "X-Total-Count": {
+                "description": "The total number of notes.",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Session": {
+                "description": "The session cookie value, or anonymous.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteStats"
+                }
+              },
+              "application/vnd.axle+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteStats"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key.",
             "content": {
               "application/json": {
                 "schema": {
@@ -134,7 +337,8 @@
             "description": "The note id.",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1
             }
           }
         ],
@@ -184,7 +388,8 @@
             "description": "The note id.",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1
             }
           }
         ],
@@ -227,7 +432,8 @@
             "description": "The note id.",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1
             }
           }
         ],
@@ -307,6 +513,8 @@
           },
           "title": {
             "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
             "description": "The note title."
           }
         },
@@ -331,6 +539,20 @@
           "checkedAt",
           "status"
         ]
+      },
+      "ImportResult": {
+        "type": "object",
+        "properties": {
+          "bytes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The number of bytes received."
+          }
+        },
+        "required": [
+          "bytes"
+        ],
+        "description": "The result of accepting an import upload."
       },
       "Note": {
         "type": "object",
@@ -357,6 +579,8 @@
           },
           "title": {
             "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
             "description": "The note title."
           }
         },
@@ -366,6 +590,123 @@
           "id",
           "title"
         ]
+      },
+      "NoteCompletedEvent": {
+        "type": "object",
+        "properties": {
+          "noteId": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The note id."
+          },
+          "title": {
+            "type": "string",
+            "description": "The note title."
+          },
+          "type": {
+            "type": "string",
+            "description": "The event discriminator."
+          }
+        },
+        "required": [
+          "noteId",
+          "title",
+          "type"
+        ],
+        "description": "A note was completed."
+      },
+      "NoteCreatedEvent": {
+        "type": "object",
+        "properties": {
+          "noteId": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The note id."
+          },
+          "title": {
+            "type": "string",
+            "description": "The note title."
+          },
+          "type": {
+            "type": "string",
+            "description": "The event discriminator."
+          }
+        },
+        "required": [
+          "noteId",
+          "title",
+          "type"
+        ],
+        "description": "A note was created."
+      },
+      "NoteEvent": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/NoteCreatedEvent"
+          },
+          {
+            "$ref": "#/components/schemas/NoteCompletedEvent"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "created": "#/components/schemas/NoteCreatedEvent",
+            "completed": "#/components/schemas/NoteCompletedEvent"
+          }
+        },
+        "description": "A note activity event."
+      },
+      "NoteImport": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "description": "The CSV file to import."
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "description": "A multipart note import file."
+      },
+      "NoteStats": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The number of active notes."
+          },
+          "completed": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The number of completed notes."
+          },
+          "matching": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The number of notes matching [window]."
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The total number of notes."
+          },
+          "window": {
+            "type": "string",
+            "description": "The selected window."
+          }
+        },
+        "required": [
+          "active",
+          "completed",
+          "matching",
+          "total",
+          "window"
+        ],
+        "description": "A summary of notes for a selected window."
       },
       "UpdateNote": {
         "type": "object",
@@ -389,9 +730,19 @@
               "string",
               "null"
             ],
+            "minLength": 1,
+            "maxLength": 120,
             "description": "The new title."
           }
         }
+      }
+    },
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "description": "Example API key. Send demo-key in local runs.",
+        "name": "X-API-Key",
+        "in": "header"
       }
     }
   }

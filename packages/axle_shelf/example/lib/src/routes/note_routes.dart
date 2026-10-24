@@ -8,12 +8,19 @@ import '../repositories/note_repository.dart';
 
 late NoteRepository _repository;
 
+const _demoApiKey = 'demo-key';
+const _vendorJson = 'application/vnd.axle+json';
+const _windows = {'all', 'active', 'completed'};
+
 /// Registers the Todo API routes on [router].
 void configureApi(Router router, {NoteRepository? repository}) {
   _repository = repository ?? NoteRepository.seeded();
   router
     ..get('/health', health)
     ..get('/notes', listNotes)
+    ..get('/notes/stats', noteStats)
+    ..get('/notes/activity', noteActivity)
+    ..post('/notes/import', importNotes)
     ..post('/notes', createNote)
     ..get('/notes/<id>', getNote)
     ..patch('/notes/<id>', updateNote)
@@ -47,6 +54,8 @@ Future<Response> health(Request request) async {
     ApiQueryParam(
       'limit',
       type: int,
+      minimum: 1,
+      maximum: 100,
       description: 'Maximum number of notes to return.',
     ),
   ],
@@ -63,11 +72,11 @@ Future<Response> listNotes(Request request) async {
     );
   }
   final limit = parseQueryInt(query['limit']);
-  if (query.containsKey('limit') && limit == null) {
+  if (query.containsKey('limit') && (limit == null || limit > 100)) {
     return jsonError(
       400,
       'invalid_query',
-      '`limit` must be a positive integer.',
+      '`limit` must be an integer between 1 and 100.',
     );
   }
 
@@ -82,7 +91,21 @@ Future<Response> listNotes(Request request) async {
   summary: 'Create a note',
   tags: ['Notes'],
   body: ApiBody(CreateNote),
-  responses: [ApiResponse.created(Note), ApiResponse.badRequest(ApiError)],
+  responses: [
+    ApiResponse(
+      status: 201,
+      type: Note,
+      description: 'Created',
+      headers: [
+        ApiResponseHeader(
+          'Location',
+          type: String,
+          description: 'URL of the created note.',
+        ),
+      ],
+    ),
+    ApiResponse.badRequest(ApiError),
+  ],
 )
 Future<Response> createNote(Request request) async {
   final body = await readJsonObject(request);
@@ -90,8 +113,12 @@ Future<Response> createNote(Request request) async {
     return jsonError(400, 'invalid_body', 'The body must be a JSON object.');
   }
   final title = body['title'];
-  if (title is! String || title.trim().isEmpty) {
-    return jsonError(400, 'invalid_title', '`title` is required.');
+  if (title is! String || title.trim().isEmpty || title.trim().length > 120) {
+    return jsonError(
+      400,
+      'invalid_title',
+      '`title` must be between 1 and 120 characters.',
+    );
   }
   final description = body['description'];
   if (description != null && description is! String) {
@@ -106,7 +133,11 @@ Future<Response> createNote(Request request) async {
     title: title.trim(),
     description: description as String?,
   );
-  return jsonResponse(note.toJson(), status: 201);
+  return jsonResponse(
+    note.toJson(),
+    status: 201,
+    headers: {'Location': '/notes/${note.id}'},
+  );
 }
 
 /// Gets one note.
@@ -115,7 +146,9 @@ Future<Response> createNote(Request request) async {
   path: '/notes/:id',
   summary: 'Get a note',
   tags: ['Notes'],
-  pathParams: [ApiPathParam('id', type: int, description: 'The note id.')],
+  pathParams: [
+    ApiPathParam('id', type: int, minimum: 1, description: 'The note id.'),
+  ],
   responses: [
     ApiResponse.ok(Note),
     ApiResponse.badRequest(ApiError),
@@ -124,8 +157,8 @@ Future<Response> createNote(Request request) async {
 )
 Future<Response> getNote(Request request, String id) async {
   final noteId = int.tryParse(id);
-  if (noteId == null) {
-    return jsonError(400, 'invalid_id', '`id` must be an integer.');
+  if (noteId == null || noteId < 1) {
+    return jsonError(400, 'invalid_id', '`id` must be a positive integer.');
   }
   final note = _repository.get(noteId);
   if (note == null) {
@@ -140,7 +173,9 @@ Future<Response> getNote(Request request, String id) async {
   path: '/notes/:id',
   summary: 'Update a note',
   tags: ['Notes'],
-  pathParams: [ApiPathParam('id', type: int, description: 'The note id.')],
+  pathParams: [
+    ApiPathParam('id', type: int, minimum: 1, description: 'The note id.'),
+  ],
   body: ApiBody(UpdateNote),
   responses: [
     ApiResponse.ok(Note),
@@ -150,8 +185,8 @@ Future<Response> getNote(Request request, String id) async {
 )
 Future<Response> updateNote(Request request, String id) async {
   final noteId = int.tryParse(id);
-  if (noteId == null) {
-    return jsonError(400, 'invalid_id', '`id` must be an integer.');
+  if (noteId == null || noteId < 1) {
+    return jsonError(400, 'invalid_id', '`id` must be a positive integer.');
   }
   final body = await readJsonObject(request);
   if (body == null) {
@@ -168,11 +203,12 @@ Future<Response> updateNote(Request request, String id) async {
   }
 
   final title = body['title'];
-  if (title != null && (title is! String || title.trim().isEmpty)) {
+  if (title != null &&
+      (title is! String || title.trim().isEmpty || title.trim().length > 120)) {
     return jsonError(
       400,
       'invalid_title',
-      '`title` must be a non-empty string.',
+      '`title` must be between 1 and 120 characters.',
     );
   }
   final description = body['description'];
@@ -210,7 +246,9 @@ Future<Response> updateNote(Request request, String id) async {
   path: '/notes/:id',
   summary: 'Delete a note',
   tags: ['Notes'],
-  pathParams: [ApiPathParam('id', type: int, description: 'The note id.')],
+  pathParams: [
+    ApiPathParam('id', type: int, minimum: 1, description: 'The note id.'),
+  ],
   responses: [
     ApiResponse.noContent(),
     ApiResponse.badRequest(ApiError),
@@ -219,11 +257,189 @@ Future<Response> updateNote(Request request, String id) async {
 )
 Future<Response> deleteNote(Request request, String id) async {
   final noteId = int.tryParse(id);
-  if (noteId == null) {
-    return jsonError(400, 'invalid_id', '`id` must be an integer.');
+  if (noteId == null || noteId < 1) {
+    return jsonError(400, 'invalid_id', '`id` must be a positive integer.');
   }
   if (!_repository.delete(noteId)) {
     return jsonError(404, 'note_not_found', 'Note $noteId does not exist.');
   }
   return Response(204);
+}
+
+/// Returns a summary of notes.
+@ApiRoute(
+  method: ApiMethod.get,
+  path: '/notes/stats',
+  summary: 'Get note statistics',
+  tags: ['Notes'],
+  queryParams: [
+    ApiQueryParam(
+      'window',
+      type: String,
+      enumValues: ['all', 'active', 'completed'],
+      defaultValue: 'all',
+      description: 'The subset used for the matching count.',
+    ),
+  ],
+  cookieParams: [
+    ApiCookieParam(
+      'session',
+      type: String,
+      description: 'Optional session id echoed in X-Session.',
+    ),
+  ],
+  security: [
+    ApiSecurityRequirement(['apiKey']),
+  ],
+  responses: [
+    ApiResponse(
+      status: 200,
+      type: NoteStats,
+      description: 'Note statistics.',
+      contentTypes: ['application/json', 'application/vnd.axle+json'],
+      headers: [
+        ApiResponseHeader(
+          'X-Total-Count',
+          type: int,
+          description: 'The total number of notes.',
+        ),
+        ApiResponseHeader(
+          'X-Session',
+          type: String,
+          description: 'The session cookie value, or anonymous.',
+        ),
+      ],
+    ),
+    ApiResponse.badRequest(ApiError),
+    ApiResponse(
+      status: 401,
+      type: ApiError,
+      description: 'Missing or invalid API key.',
+    ),
+  ],
+)
+Future<Response> noteStats(Request request) async {
+  if (!_isAuthorized(request)) return _unauthorized();
+
+  final window = request.url.queryParameters['window'] ?? 'all';
+  if (!_windows.contains(window)) {
+    return jsonError(
+      400,
+      'invalid_window',
+      '`window` must be `all`, `active`, or `completed`.',
+    );
+  }
+
+  final notes = _repository.list();
+  final completed = notes.where((note) => note.completed).length;
+  final active = notes.length - completed;
+  final matching = switch (window) {
+    'active' => active,
+    'completed' => completed,
+    _ => notes.length,
+  };
+  final stats = NoteStats(
+    window: window,
+    total: notes.length,
+    completed: completed,
+    active: active,
+    matching: matching,
+  );
+  final session = _cookieValue(request, 'session') ?? 'anonymous';
+  final wantsVendor = (request.headers['accept'] ?? '').contains(_vendorJson);
+  return jsonResponse(
+    stats.toJson(),
+    headers: {'X-Total-Count': '${stats.total}', 'X-Session': session},
+    contentType: wantsVendor ? _vendorJson : 'application/json',
+  );
+}
+
+/// Lists recent note activity.
+@ApiRoute(
+  method: ApiMethod.get,
+  path: '/notes/activity',
+  summary: 'List note activity',
+  tags: ['Notes'],
+  responses: [ApiResponse.ok(List<NoteEvent>)],
+)
+Future<Response> noteActivity(Request request) async {
+  final events = <NoteEvent>[];
+  for (final note in _repository.list()) {
+    events.add(NoteCreatedEvent(noteId: note.id, title: note.title));
+    if (note.completed) {
+      events.add(NoteCompletedEvent(noteId: note.id, title: note.title));
+    }
+  }
+  return jsonResponse([for (final event in events) event.toJson()]);
+}
+
+/// Accepts a multipart note import upload.
+@ApiRoute(
+  method: ApiMethod.post,
+  path: '/notes/import',
+  summary: 'Import notes from a multipart upload',
+  tags: ['Notes'],
+  body: ApiBody(NoteImport, contentTypes: ['multipart/form-data']),
+  security: [
+    ApiSecurityRequirement(['apiKey']),
+  ],
+  responses: [
+    ApiResponse(
+      status: 201,
+      type: ImportResult,
+      description: 'The upload was accepted.',
+      headers: [
+        ApiResponseHeader(
+          'Location',
+          type: String,
+          description: 'The import collection URL.',
+        ),
+      ],
+    ),
+    ApiResponse.badRequest(ApiError),
+    ApiResponse(
+      status: 401,
+      type: ApiError,
+      description: 'Missing or invalid API key.',
+    ),
+  ],
+)
+Future<Response> importNotes(Request request) async {
+  if (!_isAuthorized(request)) return _unauthorized();
+
+  final bytes = await request.read().fold<int>(
+    0,
+    (total, chunk) => total + chunk.length,
+  );
+  if (bytes == 0) {
+    return jsonError(400, 'empty_import', 'The upload body is empty.');
+  }
+  return jsonResponse(
+    ImportResult(bytes: bytes).toJson(),
+    status: 201,
+    headers: {'Location': '/notes'},
+  );
+}
+
+bool _isAuthorized(Request request) =>
+    request.headers['x-api-key'] == _demoApiKey;
+
+Response _unauthorized() {
+  return jsonError(
+    401,
+    'unauthorized',
+    'Send the example API key in the X-API-Key header.',
+  );
+}
+
+String? _cookieValue(Request request, String name) {
+  final header = request.headers['cookie'];
+  if (header == null) return null;
+  for (final part in header.split(';')) {
+    final pair = part.trim().split('=');
+    if (pair.length >= 2 && pair.first == name) {
+      return Uri.decodeComponent(pair.sublist(1).join('='));
+    }
+  }
+  return null;
 }

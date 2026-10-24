@@ -2,11 +2,24 @@ import 'dart:convert';
 
 import 'package:relic/relic.dart';
 
-/// Returns a JSON response with [status].
-Response jsonResponse(Object? value, {int status = 200}) {
+/// Returns a JSON response with [status], optional [headers], and [mimeType].
+Response jsonResponse(
+  Object? value, {
+  int status = 200,
+  Map<String, String> headers = const {},
+  MimeType? mimeType,
+}) {
   return Response(
     status,
-    body: Body.fromString(jsonEncode(value), mimeType: MimeType.json),
+    body: Body.fromString(
+      jsonEncode(value),
+      mimeType: mimeType ?? MimeType.json,
+    ),
+    headers: headers.isEmpty
+        ? Headers.empty()
+        : Headers.fromMap({
+            for (final entry in headers.entries) entry.key: [entry.value],
+          }),
   );
 }
 

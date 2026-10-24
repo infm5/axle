@@ -1,8 +1,23 @@
 openapi: "3.1.0"
 info:
   title: "Shelf Todo Example"
-  version: "0.1.0"
+  version: "0.2.0"
   description: "A Shelf Todo API demonstrating axle_shelf."
+tags:
+  - name: "System"
+    description: "Service metadata."
+  - name: "Notes"
+    description: "Note operations."
+externalDocs:
+  url: "https://github.com/infm5/axle"
+  description: "axle documentation."
+security:
+  schemes:
+    apiKey:
+      type: "apiKey"
+      in: "header"
+      name: "X-API-Key"
+      description: "Example API key. Send demo-key in local runs."
 generate:
   scan:
     - "lib"

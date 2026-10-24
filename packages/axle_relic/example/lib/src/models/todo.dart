@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:axle_relic/axle_relic.dart';
 
 /// A todo item.
@@ -7,6 +9,7 @@ class Todo {
   final int id;
 
   /// The todo title.
+  @ApiProperty(minLength: 1, maxLength: 120)
   final String title;
 
   /// An optional longer description.
@@ -48,6 +51,7 @@ class Todo {
 @ApiSchema(description: 'The request body for creating a todo.')
 class CreateTodo {
   /// The todo title.
+  @ApiProperty(minLength: 1, maxLength: 120)
   final String title;
 
   /// An optional longer description.
@@ -61,6 +65,7 @@ class CreateTodo {
 @ApiSchema(description: 'The request body for updating a todo.')
 class UpdateTodo {
   /// The new title, when changing it.
+  @ApiProperty(minLength: 1, maxLength: 120)
   final String? title;
 
   /// The new description, when changing it.
@@ -107,4 +112,137 @@ class ApiError {
 
   /// Converts the error to JSON.
   Map<String, Object?> toJson() => {'code': code, 'message': message};
+}
+
+/// A summary of todos for a selected window.
+@ApiSchema(description: 'A summary of todos for a selected window.')
+class TodoStats {
+  /// The selected window.
+  final String window;
+
+  /// The total number of todos.
+  @ApiProperty(minimum: 0)
+  final int total;
+
+  /// The number of completed todos.
+  @ApiProperty(minimum: 0)
+  final int completed;
+
+  /// The number of active todos.
+  @ApiProperty(minimum: 0)
+  final int active;
+
+  /// The number of todos matching [window].
+  @ApiProperty(minimum: 0)
+  final int matching;
+
+  /// Creates a todo summary.
+  const TodoStats({
+    required this.window,
+    required this.total,
+    required this.completed,
+    required this.active,
+    required this.matching,
+  });
+
+  /// Converts the summary to JSON.
+  Map<String, Object?> toJson() => {
+    'window': window,
+    'total': total,
+    'completed': completed,
+    'active': active,
+    'matching': matching,
+  };
+}
+
+/// A todo activity event.
+@ApiSchema(
+  description: 'A todo activity event.',
+  oneOf: [TodoCreatedEvent, TodoCompletedEvent],
+  discriminator: ApiDiscriminator(
+    'type',
+    mapping: {'created': 'TodoCreatedEvent', 'completed': 'TodoCompletedEvent'},
+  ),
+)
+sealed class TodoEvent {
+  /// Creates an event.
+  const TodoEvent();
+
+  /// Converts the event to JSON.
+  Map<String, Object?> toJson();
+}
+
+/// A todo was created.
+@ApiSchema(description: 'A todo was created.')
+class TodoCreatedEvent extends TodoEvent {
+  /// The event discriminator.
+  @ApiProperty(required: true)
+  final String type = 'created';
+
+  /// The todo id.
+  @ApiProperty(name: 'todo_id', minimum: 1)
+  final int todoId;
+
+  /// The todo title.
+  final String title;
+
+  /// Creates a creation event.
+  const TodoCreatedEvent({required this.todoId, required this.title});
+
+  @override
+  Map<String, Object?> toJson() => {
+    'type': type,
+    'todo_id': todoId,
+    'title': title,
+  };
+}
+
+/// A todo was completed.
+@ApiSchema(description: 'A todo was completed.')
+class TodoCompletedEvent extends TodoEvent {
+  /// The event discriminator.
+  @ApiProperty(required: true)
+  final String type = 'completed';
+
+  /// The todo id.
+  @ApiProperty(name: 'todo_id', minimum: 1)
+  final int todoId;
+
+  /// The todo title.
+  final String title;
+
+  /// Creates a completion event.
+  const TodoCompletedEvent({required this.todoId, required this.title});
+
+  @override
+  Map<String, Object?> toJson() => {
+    'type': type,
+    'todo_id': todoId,
+    'title': title,
+  };
+}
+
+/// A multipart todo import file.
+@ApiSchema(description: 'A multipart todo import file.')
+class TodoImport {
+  /// The CSV file to import.
+  @ApiProperty(format: 'binary', description: 'The CSV file to import.')
+  final Uint8List file;
+
+  /// Creates an import upload.
+  const TodoImport(this.file);
+}
+
+/// The result of accepting an import upload.
+@ApiSchema(description: 'The result of accepting an import upload.')
+class ImportResult {
+  /// The number of bytes received.
+  @ApiProperty(minimum: 0)
+  final int bytes;
+
+  /// Creates an import result.
+  const ImportResult({required this.bytes});
+
+  /// Converts the result to JSON.
+  Map<String, Object?> toJson() => {'bytes': bytes};
 }

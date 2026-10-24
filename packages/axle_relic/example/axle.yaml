@@ -1,13 +1,28 @@
 openapi: 3.1.0
 info:
   title: Relic Todo API
-  version: 0.1.0
+  version: 0.2.0
   description: A proper Relic Todo API demonstrating axle.
   contact:
     name: Axle Example
     email: example@example.com
   license:
     name: MIT
+tags:
+  - name: System
+    description: Service metadata.
+  - name: Todos
+    description: Todo operations.
+externalDocs:
+  url: https://github.com/infm5/axle
+  description: axle documentation.
+security:
+  schemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Example API key. Send demo-key in local runs.
 generate:
   scan:
     - lib

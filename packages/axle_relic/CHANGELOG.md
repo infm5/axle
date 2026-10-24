@@ -1,3 +1,13 @@
+## 0.2.0
+
+- Aligned with `axle_core` 0.2.0.
+- Added pass-through coverage for security schemes, operation security, and
+  response headers.
+- Updated the runnable example with API key enforcement, response headers,
+  cookie parameters, content negotiation, constraints, `oneOf` schemas, and
+  multipart uploads.
+- Remains on Relic 2.0.0-rc.2.
+
 ## 0.1.0
 
 - Initial release.

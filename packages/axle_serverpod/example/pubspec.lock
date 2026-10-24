@@ -47,22 +47,21 @@ packages:
       path: "../../axle_cli"
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.2.0"
   axle_core:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: axle_core
-      sha256: "914ef68773922081a3499670cdd5dd2aa1b52046cf08a9c23eb857a8713724b5"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.0"
+      path: "../../axle_core"
+      relative: true
+    source: path
+    version: "0.2.0"
   axle_serverpod:
     dependency: transitive
     description:
       path: ".."
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.2.0"
   buffer:
     dependency: transitive
     description:

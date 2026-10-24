@@ -9,6 +9,33 @@ const _spec =
     '{"openapi":"3.1.0","info":{"title":"Test API","version":"1.0.0"},'
     '"paths":{}}';
 
+const _contractSpec = '''
+{
+  "openapi": "3.1.0",
+  "info": {"title": "Contract API", "version": "1.0.0"},
+  "components": {
+    "securitySchemes": {
+      "apiKey": {"type": "apiKey", "in": "header", "name": "X-API-Key"}
+    }
+  },
+  "paths": {
+    "/secure": {
+      "get": {
+        "security": [{"apiKey": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Total-Count": {"schema": {"type": "integer"}}
+            }
+          }
+        }
+      }
+    }
+  }
+}
+''';
+
 void main() {
   group('axleDocsHandler', () {
     test('serves the spec and UI', () async {
@@ -27,6 +54,15 @@ void main() {
         await uiResponse.readAsString(),
         contains('<title>Test API</title>'),
       );
+    });
+
+    test('serves richer contracts verbatim', () async {
+      final handler = axleDocsHandler(spec: _contractSpec);
+
+      final specResponse = await _get(handler, '/openapi.json');
+
+      expect(specResponse.statusCode, 200);
+      expect(await specResponse.readAsString(), _contractSpec);
     });
 
     test('supports custom paths and no-cache disabled', () async {

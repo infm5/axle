@@ -1,6 +1,6 @@
 name: relic_todo_example
 description: A proper Relic Todo API demonstrating axle.
-version: 0.1.0
+version: 0.2.0
 publish_to: none
 resolution: workspace
 
