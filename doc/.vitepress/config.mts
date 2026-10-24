@@ -22,6 +22,7 @@ export default defineConfig({
       { text: 'Guide', link: '/guide/introduction' },
       { text: 'Packages', link: '/packages/' },
       { text: 'Adapters', link: '/adapters/building-an-adapter' },
+      { text: 'Skills', link: '/skills/' },
       { text: 'Reference', link: '/reference/axle-yaml' },
     ],
     sidebar: [
@@ -53,6 +54,13 @@ export default defineConfig({
         text: 'Adapters',
         items: [
           { text: 'Building an Adapter', link: '/adapters/building-an-adapter' },
+        ],
+      },
+      {
+        text: 'Skills',
+        items: [
+          { text: 'Overview', link: '/skills/' },
+          { text: 'axle-openapi-setup', link: '/skills/axle-openapi-setup' },
         ],
       },
       {
