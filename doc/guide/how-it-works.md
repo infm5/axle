@@ -106,6 +106,7 @@ Full catalog: [Troubleshooting](/guide/troubleshooting).
 
 - Binding or generating application routes.
 - Runtime request/response validation and serialization.
-- Authentication or authorization.
+- Authentication or authorization enforcement. Security metadata is generated,
+  but middleware remains application-owned.
 - Class/method endpoint discovery. The generator documents top-level
   functions; broader shapes are a future core feature.

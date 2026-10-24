@@ -49,8 +49,8 @@ example.
 
 ## Versioning
 
-All five packages are versioned independently but currently share `0.1.0`.
-Adapters depend on a compatible `axle_core` range (e.g. `^0.1.0`) — core is the
+All five packages are versioned independently but currently share `0.2.0`.
+Adapters depend on a compatible `axle_core` range (e.g. `^0.2.0`) — core is the
 stable contract, and adapters must never force users to match the CLI version.
 Dart floors are intentionally split: core supports Dart 3.7+, while the
 analyzer-based CLI has the highest floor.

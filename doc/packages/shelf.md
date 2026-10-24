@@ -11,11 +11,11 @@ does not bind routes, validate requests, serialize responses, or enforce auth.
 
 ```yaml
 dependencies:
-  axle_shelf: ^0.1.0
+  axle_shelf: ^0.2.0
   shelf: ^1.4.0
 
 dev_dependencies:
-  axle_cli: ^0.1.0
+  axle_cli: ^0.2.0
 ```
 
 ```dart
@@ -106,8 +106,11 @@ final handler = axleDocsHandler(
 The complete runnable Todo API is at
 [`packages/axle_shelf/example`](https://github.com/infm5/axle/tree/master/packages/axle_shelf/example)
 — annotated Shelf handlers, a Shelf router for application routes, generated
-specs, generated `openapi.g.dart`, and local Swagger UI assets. If you only
-need the CDN-backed UI, omit `swaggerUiDirectory`.
+specs, generated `openapi.g.dart`, and local Swagger UI assets. It also
+demonstrates an `apiKey` scheme with real `X-API-Key` checks, response headers,
+cookie parameters, content negotiation, query/path constraints, a `oneOf`
+activity response, and a multipart upload with a binary file property. If you
+only need the CDN-backed UI, omit `swaggerUiDirectory`.
 
 ## Adapter comparison
 
@@ -132,7 +135,10 @@ Another adapter for any framework follows this same shape — see
 
 ## Boundaries
 
-- Serves the spec **verbatim**; never transforms it.
+- Serves the spec **verbatim**; never transforms it, including
+  `securitySchemes`, `security`, response headers, cookies, and media types.
+- Does not validate credentials or enforce auth; the example handlers show
+  application-owned checks.
 - Non-`GET` requests and unrelated paths get `404`, never method errors or redirects.
 - Relative directory paths resolve from the process working directory — use an
   absolute path in deployments if needed.

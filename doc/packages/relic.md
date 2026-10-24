@@ -4,19 +4,19 @@
 
 The Relic runtime adapter. It mounts the generated spec and Swagger UI on a
 `RelicApp` and maps the shared `AxleDocs` values to Relic responses and
-headers. It contains no generation logic, no route discovery, and no auth —
-and it re-exports `axle_core`, so Relic apps get annotations, the document
-model, and docs helpers from one import.
+headers. It contains no generation logic, no route discovery, and no auth
+enforcement — and it re-exports `axle_core`, so Relic apps get annotations, the
+document model, and docs helpers from one import.
 
 ## Install
 
 ```yaml
 dependencies:
-  axle_relic: ^0.1.0
+  axle_relic: ^0.2.0
   relic: ^2.0.0-rc.2
 
 dev_dependencies:
-  axle_cli: ^0.1.0
+  axle_cli: ^0.2.0
 ```
 
 ```dart
@@ -109,16 +109,22 @@ app.mountAxleDocs(
 The complete runnable Todo API is at
 [`packages/axle_relic/example`](https://github.com/infm5/axle/tree/master/packages/axle_relic/example)
 — models, in-memory repository, annotated route modules, shared HTTP helpers,
-generated specs, generated `openapi.g.dart`, and local Swagger UI assets.
-`/health`, `/todos`, `/openapi.json`, `/docs`, and `/docs-assets` were all
-verified against a live server.
+generated specs, generated `openapi.g.dart`, and local Swagger UI assets. It also
+demonstrates an `apiKey` scheme with real `X-API-Key` checks, response headers,
+cookie parameters, content negotiation, query/path constraints, a `oneOf`
+activity response, and a multipart upload with a binary file property.
+`/health`, `/todos`, `/todos/stats`, `/todos/activity`, `/todos/import`,
+`/openapi.json`, `/docs`, and `/docs-assets` were all verified against a live
+server.
 
 ## Boundaries
 
 - Serves the spec **verbatim** as `application/json`; never transforms it.
 - Serves the UI as `text/html; charset=utf-8`.
 - Does not bind application routes, validate requests, serialize responses, or
-  enforce auth. Protect the docs routes with your own middleware if needed.
+  enforce auth. It serves generated security metadata verbatim but never
+  validates credentials. Protect the docs routes with your own middleware if
+  needed.
 - Targets Relic 2.0.0-rc.2; will move to stable Relic 2.x once published.
 
 ## Other adapters

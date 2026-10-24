@@ -1,17 +1,31 @@
 # Roadmap & Status
 
-Phases 0–1 are implemented, Phase 2 is partially implemented, and Phases 3–5
-are planned. Exit criteria are quoted from the design doc.
+Phases 0–3 are substantially implemented, Phase 2 is partially implemented,
+and Phases 4–5 are planned. Phase 1 still has validation and contract-diff work.
+Exit criteria are quoted from the design doc.
 
 ## Done
 
 **Phase 0 — Config cleanup and example relocation.**
 
-- `axle.yaml` holds only `openapi`, `info`, `generate.scan`, `generate.output`.
-- `servers`, `docs`, `swagger_ui_url`, `tags`, `security` rejected.
+- `axle.yaml` owns `openapi`, `info`, optional global metadata, and
+  `generate.scan` / `generate.output`.
+- `docs` and `swagger_ui_url` stay runtime adapter concerns and are rejected.
 - `init` reads `pubspec.yaml` once to seed identity, then never again.
 - Docs title derived from the spec's `info.title`.
 - Relic Todo example built; workspace + CI + READMEs updated.
+
+**0.2.0 release line (2026-10-24).**
+
+- Security schemes and requirements: `http`, `apiKey`, `oauth2`,
+  `openIdConnect`; global default and per-route overrides.
+- Response headers, cookie parameters, multiple media types, and
+  multipart/binary uploads.
+- Parameter and property validation constraints.
+- Explicit `oneOf` discriminators through `@ApiSchema`.
+- Global tags, external docs, terms of service, and optional `servers`.
+- Relic and Shelf examples exercise the new contract features against live
+  handlers.
 
 **Phase 2 (partial, shipped early) — Framework adapters.**
 
@@ -29,12 +43,12 @@ are planned. Exit criteria are quoted from the design doc.
 
 **Phase 1 — Contract quality.**
 
-- Source locations in generator errors.
-- Strict schema validation and duplicate detection.
-- OpenAPI 3.1 structural validation in CI (Redocly or a JSON Schema validator).
-- Response headers, cookie parameters, multiple media types.
-- `oneOf` / discriminator design for sealed classes.
-- Contract diff tooling / CI artifact comparison.
+- [x] Strict schema validation and duplicate detection.
+- [x] Response headers, cookie parameters, and multiple media types.
+- [x] Explicit `oneOf` / discriminator schemas.
+- [ ] Source locations in generator errors.
+- [ ] OpenAPI 3.1 structural validation in CI (Redocly or a JSON Schema validator).
+- [ ] Contract diff tooling / CI artifact comparison.
 
 Exit: generated spec validates against OpenAPI 3.1; errors point at the
 offending Dart symbol; schema coverage documented.
@@ -45,20 +59,20 @@ offending Dart symbol; schema coverage documented.
 core/CLI changes. The Serverpod adapter is implemented for Serverpod 4 web
 routes; RPC `Endpoint` documentation remains out of scope.
 
-**Phase 3 — Security metadata.** Scheme definition API, route-level security
-annotations, global default, validation against defined schemes. Application
-middleware stays application-owned. Exit: security refs validate and match an
-actually-protected example app. Design hook:
+**Phase 3 — Security metadata (done).** Scheme definitions, route-level
+requirements, a global default, and reference validation are implemented.
+Application middleware still owns enforcement.
 
-- `@ApiRoute(security: ['bearerAuth'])` on protected handlers.
+- `security.schemes` in `axle.yaml` defines reusable schemes.
+- `@ApiRoute(security: [ApiSecurityRequirement([...])])` protects operations.
 - `security: []` marks one operation public.
-- `null` inherits a global default.
+- `null` inherits the document default.
 - `axle gen` validates every referenced scheme exists.
 
-**Phase 4 — Distribution.** Publish `axle_core`, `axle_cli`, `axle_relic`,
-`axle_shelf`, and `axle_serverpod` to pub.dev; document supported
-Dart/analyzer/framework versions. Exit: installable from pub.dev; example works
-from a clean checkout.
+**Phase 4 — Distribution.** `0.2.0` is prepared across `axle_core`, `axle_cli`,
+`axle_relic`, `axle_shelf`, and `axle_serverpod`. Publish core first, then the
+adapters; `axle_serverpod` needs its first manual publication. Exit: installable
+from pub.dev; example works from a clean checkout.
 
 **Phase 5 — Advanced tooling.** Watch mode, contract lint/diff, mock server
 from spec/examples, `transformJson` serving hook, multiple specs per package
@@ -66,14 +80,13 @@ from spec/examples, `transformJson` serving hook, multiple specs per package
 
 ## Open Decisions
 
-1. Optional advanced `servers` support for proxied deployments.
-2. Top-level tag descriptions vs operation tags only.
-3. Security schemes as annotations vs adapter/config registries.
+1. Automatic `allOf`/`anyOf` and sealed-hierarchy inference.
+2. Watch mode, tag filtering, and multiple specs per package.
+3. Contract diffing and mock generation.
 4. Config schema version for future migrations.
 5. A future build_runner mode reusing the CLI scanner.
 6. Example as workspace member vs standalone package with its own lockfile.
-7. Multiple specs per package.
 
-Current positions: no servers, no top-level tags, security later, no
-build_runner, `AxleDocs` as the stable contract, workspace-member examples, one
-spec per package.
+Current positions: explicit `oneOf` only, one spec per package by default,
+security metadata without enforcement, no build_runner, `AxleDocs` as the stable
+contract.

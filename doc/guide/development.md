@@ -26,12 +26,12 @@ dart run melos run check   # analyze + test + format + spec freshness
 Dart, `dart pub get`, `dart run melos run check`. It validates only —
 publishing is handled by per-package tag workflows (`publish-axle_*.yml`)
 using GitHub OIDC; no `PUB_CREDENTIALS` secret is required. Per-package tags
-(`axle_core-v0.1.0`, …) point at `master` and match the package version.
+(`axle_core-v0.2.0`, …) point at `master` and match the package version.
 
 ## Conventions
 
 - Keep every package at its declared version; adapters constrain
-  `axle_core: ^0.1.0`, never the CLI.
+  `axle_core: ^0.2.0`, never the CLI.
 - Generator errors must name the offending symbol and carry the correct
   sysexits code (`64` / `65` / `70` / `78`).
 - Generated example artifacts are committed; `gen --check` is the freshness gate.

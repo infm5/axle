@@ -14,7 +14,7 @@ directly when building an adapter or using the document model standalone:
 
 ```yaml
 dependencies:
-  axle_core: ^0.1.0
+  axle_core: ^0.2.0
 ```
 
 ```dart
@@ -42,11 +42,13 @@ without explicit IDs).
   pathParams: [ApiPathParam('id', type: int)],
   queryParams: [ApiQueryParam('page', type: int, required: false)],
   headerParams: [ApiHeaderParam('x-trace', type: String, required: false)],
-  body: ApiBody(UserInput),
+  cookieParams: [ApiCookieParam('session', type: String)],
+  body: ApiBody(UserInput, contentTypes: ['application/json']),
   responses: [
     ApiResponse.ok(UserDto),
     ApiResponse.notFound(),
   ],
+  security: [ApiSecurityRequirement(['bearerAuth'])],
   ignore: false,
 )
 ```
@@ -62,13 +64,15 @@ without explicit IDs).
 Parameters carry a Dart `Type` literal (`type: int`), never a nullable type
 literal — `int?` is not valid Dart in that position. Nullability is expressed
 via `ApiResponse(nullable: true)` or the DTO field type. `ApiQueryParam` also
-accepts `defaultValue`. `ApiBody` defaults to `required: true`.
+accepts `defaultValue`; all parameter classes accept `format`, `enumValues`,
+`minimum`, `maximum`, `minLength`, `maxLength`, and `pattern`. `ApiBody` defaults
+to `required: true` and `contentTypes: ['application/json']`.
 
 `ApiResponse` constructors and their defaults:
 
 | Constructor | Status | Default description | Body |
 | --- | --- | --- | --- |
-| `ApiResponse(status:, type:, description:, nullable:, example:)` | explicit | `''` | optional `Type` |
+| `ApiResponse(status:, type:, description:, nullable:, example:, headers:, contentTypes:)` | explicit | `''` | optional `Type` |
 | `.ok([type, description, example])` | 200 | `'OK'` | optional |
 | `.created(...)` | 201 | `'Created'` | optional |
 | `.noContent([description])` | 204 | `'No Content'` | none — `type` is always null |
@@ -79,20 +83,33 @@ accepts `defaultValue`. `ApiBody` defaults to `required: true`.
 ### `@ApiSchema` / `@ApiProperty`
 
 Schemas are inferred from classes referenced by `ApiBody` / `ApiResponse`.
-These annotations only override metadata or force-include unreferenced models:
+These annotations override metadata, add constraints, compose `oneOf` schemas,
+or force-include unreferenced models:
 
 ```dart
 @ApiSchema(name: 'User', description: 'A user returned by the API.')
 class UserDto {
-  @ApiProperty(description: 'Stable user id.')
+  @ApiProperty(description: 'Stable user id.', minimum: 1)
   final int id;
 
-  @ApiProperty(name: 'fullName', required: false, example: 'Ada')
+  @ApiProperty(
+    name: 'fullName',
+    required: false,
+    minLength: 1,
+    maxLength: 80,
+    example: 'Ada',
+  )
   final String name;
 
   @ApiProperty(ignore: true)
   final String internalFlag;
 }
+
+@ApiSchema(
+  oneOf: [CatDto, DogDto],
+  discriminator: ApiDiscriminator('kind'),
+)
+sealed class PetDto {}
 ```
 
 - `@ApiSchema(ignore: true)` skips auto-inclusion, but referenced classes are
@@ -136,10 +153,12 @@ custom-CDN deployments needing SRI should construct `AxleDocs` directly (see
 ### Document model and `swaggerUiHtml`
 
 `OpenApiDocument`, `OpenApiInfo`, `OpenApiContact`, `OpenApiLicense`,
-`OpenApiServer`, `OpenApiComponents`, `OpenApiPathItem`, `OpenApiOperation`,
-`OpenApiParameter`, `OpenApiRequestBody`, `OpenApiResponse`,
-`OpenApiMediaType`, and `OpenApiSchema` (nullable refs, arrays, maps, enums,
-objects, metadata) model OpenAPI 3.1 directly.
+`OpenApiServer`, `OpenApiTag`, `OpenApiExternalDocs`, `OpenApiComponents`,
+`OpenApiPathItem`, `OpenApiOperation`, `OpenApiParameter`,
+`OpenApiRequestBody`, `OpenApiResponse`, `OpenApiHeader`, `OpenApiMediaType`,
+`OpenApiSecurityScheme`, `OpenApiSecurityRequirement`, and `OpenApiSchema`
+(nullable refs, arrays, maps, enums, objects, constraints, `oneOf`
+discriminators) model OpenAPI 3.1 directly.
 
 ```dart
 swaggerUiHtml({
@@ -163,5 +182,5 @@ with `axle gen` and point the adapter at them via `swaggerUiDirectory`.
 
 - No framework imports, no HTTP types, no file I/O.
 - No generation logic — the CLI owns scanning and emitting.
-- No auth, validation, or serialization.
+- No auth enforcement, runtime validation, or serialization.
 - No runtime route discovery.

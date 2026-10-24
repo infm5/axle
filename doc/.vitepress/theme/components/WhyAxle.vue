@@ -13,7 +13,7 @@
       </div>
       <div class="ax-card">
         <div class="ax-card-t">Thin Adapters</div>
-        <div class="ax-card-d">Adapters map AxleDocs to framework responses. Same spec bytes, same headers, every framework.</div>
+        <div class="ax-card-d">Adapters map AxleDocs to framework responses. Security schemes, headers, cookies, and media types pass through unchanged.</div>
       </div>
       <div class="ax-card">
         <div class="ax-card-t">Self-Hosted Docs</div>

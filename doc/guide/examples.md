@@ -2,7 +2,15 @@
 
 Three complete, runnable examples ship in the repository. They demonstrate the
 full axle flow: annotated handlers, inferred DTO schemas, generated specs,
-generated `openapi.g.dart`, and locally served Swagger UI.
+generated `openapi.g.dart`, and locally served Swagger UI. The Relic and Shelf
+examples also exercise security requirements, response headers, cookie
+parameters, content negotiation, constraints, `oneOf` discriminators, and
+multipart uploads against real handlers.
+
+Both Todo examples use the demo API key `demo-key` in the `X-API-Key` header for
+their protected statistics and import routes. That key is example data only;
+real applications should keep enforcement in middleware and secrets outside the
+source tree.
 
 ## Relic example
 
@@ -38,6 +46,21 @@ curl -X PATCH http://localhost:8080/todos/1 \
   -d '{"completed":true}'
 
 curl -X DELETE http://localhost:8080/todos/1
+
+# Security: 401 without the key, 200 with it.
+curl -i http://localhost:8080/todos/stats
+curl -i -H 'X-API-Key: demo-key' \
+  -H 'Cookie: session=demo-session' \
+  -H 'Accept: application/vnd.axle+json' \
+  'http://localhost:8080/todos/stats?window=active'
+
+# oneOf/discriminator response.
+curl http://localhost:8080/todos/activity
+
+# Multipart upload.
+curl -i -X POST http://localhost:8080/todos/import \
+  -H 'X-API-Key: demo-key' \
+  -F 'file=@README.md'
 ```
 
 Layout:
@@ -88,6 +111,21 @@ curl -X PATCH http://localhost:8080/notes/1 \
   -d '{"completed":true}'
 
 curl -X DELETE http://localhost:8080/notes/1
+
+# Security: 401 without the key, 200 with it.
+curl -i http://localhost:8080/notes/stats
+curl -i -H 'X-API-Key: demo-key' \
+  -H 'Cookie: session=demo-session' \
+  -H 'Accept: application/vnd.axle+json' \
+  'http://localhost:8080/notes/stats?window=active'
+
+# oneOf/discriminator response.
+curl http://localhost:8080/notes/activity
+
+# Multipart upload.
+curl -i -X POST http://localhost:8080/notes/import \
+  -H 'X-API-Key: demo-key' \
+  -F 'file=@README.md'
 ```
 
 Layout:

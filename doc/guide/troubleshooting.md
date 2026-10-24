@@ -9,7 +9,7 @@ Error messages below are quoted from the CLI source. Exit codes: `64` usage,
 | --- | --- | --- |
 | `No axle.yaml found in <dir>. Run axle init … first.` | No config in project root | Run `axle init`, or pass `--config` / `--project` |
 | `axle.yaml must contain a YAML map.` | Top level is not a map | Rewrite as mapping |
-| `Unknown key 'x' in 'y'.` | Key outside the allowed set at any level (`openapi`/`info`/`generate`, `info.*`, `generate.*`, `generate.output.*`, `info.contact.*`, `info.license.*`) | Delete it — `servers`, `docs`, `swagger_ui_url`, `tags`, `security` are all rejected by design |
+| `Unknown key 'x' in 'y'.` | Key outside the allowed set at any level (`openapi`/`info`/`generate`, `info.*`, `generate.*`, `generate.output.*`, `info.contact.*`, `info.license.*`, `security.*`, `tags[]`) | Delete it — `docs` and `swagger_ui_url` are runtime adapter concerns and are rejected by design |
 | `` Only OpenAPI 3.1 documents are supported, but `openapi` is `x`. `` | Version outside `3.1.x` | Set `openapi: 3.1.0` |
 | `` `info.title` / `info.version` is required … `` | Missing identity | Add both |
 | `` `info.contact` must contain at least one of `name`, `url`, or `email`. `` | Empty contact map | Add one field or drop the block |
@@ -22,6 +22,10 @@ Error messages below are quoted from the CLI source. Exit codes: `64` usage,
 | `` `generate.output.ui` must point to a directory, but `x` is not a directory. `` | `ui` path exists as a file | Point it at a directory |
 | `axle.yaml already exists. Use --force to overwrite it.` | `init` without `--force` | Re-run with `--force` |
 | `No pubspec.yaml found …` | `init` run outside a package | Run from the package root |
+| `` `security.schemes.x.type` must be `http`, `apiKey`, `oauth2`, or `openIdConnect` `` | Unsupported scheme type | Use a supported type |
+| `` `security.schemes.x.in` must be `header`, `query`, or `cookie` `` | Invalid API-key location | Fix `in` |
+| `` `security.default` references unknown scheme `x` `` | Default lists an undefined scheme | Define it under `security.schemes` or remove it |
+| `` `security.schemes.x.flows` must be a YAML map `` | OAuth2 scheme without flows | Add at least one flow |
 
 ## Source errors (exit 65)
 
@@ -42,6 +46,9 @@ Error messages below are quoted from the CLI source. Exit codes: `64` usage,
 | `Missing 'type' in …` | Parameter/body/response annotation without a resolvable `Type` | Supply `type:` |
 | `Scan path not found: x` | Scan entry vanished between config load and scan | Restore the path |
 | `Could not start the Dart analyzer. Run dart pub get and try again. (…)` | Unresolved package config | Run `dart pub get` |
+| `references unknown security scheme x` | Route uses a scheme not declared in `axle.yaml` | Add it under `security.schemes` or remove it |
+| `has an empty security requirement` | An `ApiSecurityRequirement` has no schemes | Use `security: []` for a public route |
+| `must declare at least one content type` | Empty `contentTypes` on a body/response | Remove the empty list or add a media type |
 
 ## Stale artifacts
 

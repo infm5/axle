@@ -13,7 +13,7 @@ As a dev dependency so `dart run` can resolve it:
 
 ```yaml
 dev_dependencies:
-  axle_cli: ^0.1.0
+  axle_cli: ^0.2.0
 ```
 
 Invoke locally:
@@ -59,6 +59,10 @@ axle gen [--project <dir>] [--config axle.yaml] [--check] [--verbose]
 - Infers DTO schemas from referenced classes: nested classes, enums,
   `List`/`Set`, `Map<String, T>`, nullability, `DateTime`, `Uri`, `Duration`,
   `BigInt`, and typed-data bytes.
+- Emits security schemes/requirements, response headers, cookie parameters,
+  multiple media types, multipart bodies, parameter constraints, and explicit
+  `oneOf` discriminators.
+- Validates security references against `security.schemes` in `axle.yaml`.
 - Prints warnings to stderr; exit codes follow sysexits (usage `64`, data
   `65`, software `70`, config `78`).
 - `--check` fails when any artifact is stale — use it in CI instead of
@@ -72,7 +76,7 @@ Minimal `axle.yaml`:
 openapi: 3.1.0
 info:
   title: Todo API
-  version: 0.1.0
+  version: 0.2.0
 generate:
   scan:
     - lib
@@ -104,8 +108,9 @@ file I/O. See the [axle.yaml reference](/reference/axle-yaml) for every rule.
 ## Boundaries
 
 - No adapter or framework imports.
-- No route binding, validation, or auth — it emits a contract, not behavior.
+- No route binding, request validation, or auth enforcement — it emits a
+  contract, not behavior.
 - One spec per package; no build_runner mode.
-- Unsupported type shapes (generics, records, function types, sealed
-  hierarchies) are errors, not guesses — see
+- Unsupported type shapes (generics, records, function types, automatic sealed
+  hierarchy inference) are errors or documented omissions, not guesses — see
   [Annotations & DTO Mapping](/reference/annotations).

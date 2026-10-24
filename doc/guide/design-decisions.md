@@ -15,7 +15,7 @@ core, CLI, and adapter work — changes here require updating all three.
 | Config source | `axle.yaml` + annotations | YAML owns global contract identity; code owns route/type facts. |
 | Swagger UI | Core HTML helper + adapter routes | Shared across adapters. |
 | Example tests | None | The example is an integration demo; `gen --check` is the verification. |
-| Security | Deferred | No declaration without enforcement. |
+| Security | Metadata only | Describe schemes and requirements; enforcement stays application-owned. |
 
 ## Why not build_runner
 

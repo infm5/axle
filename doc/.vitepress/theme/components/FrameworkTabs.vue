@@ -22,10 +22,10 @@ const tabs: Tab[] = [
       {
         title: 'Add dependencies',
         code: `<span class="tk-param">dependencies</span>:
-  <span class="tk-param">axle_relic</span>: <span class="tk-str">^0.1.0</span>
+  <span class="tk-param">axle_relic</span>: <span class="tk-str">^0.2.0</span>
   <span class="tk-param">relic</span>: <span class="tk-str">^2.0.0-rc.2</span>
 <span class="tk-param">dev_dependencies</span>:
-  <span class="tk-param">axle_cli</span>: <span class="tk-str">^0.1.0</span>`,
+  <span class="tk-param">axle_cli</span>: <span class="tk-str">^0.2.0</span>`,
       },
       {
         title: 'Create axle.yaml',
@@ -69,10 +69,10 @@ const tabs: Tab[] = [
       {
         title: 'Add dependencies',
         code: `<span class="tk-param">dependencies</span>:
-  <span class="tk-param">axle_shelf</span>: <span class="tk-str">^0.1.0</span>
+  <span class="tk-param">axle_shelf</span>: <span class="tk-str">^0.2.0</span>
   <span class="tk-param">shelf</span>: <span class="tk-str">^1.4.0</span>
 <span class="tk-param">dev_dependencies</span>:
-  <span class="tk-param">axle_cli</span>: <span class="tk-str">^0.1.0</span>`,
+  <span class="tk-param">axle_cli</span>: <span class="tk-str">^0.2.0</span>`,
       },
       {
         title: 'Create axle.yaml',
@@ -118,10 +118,10 @@ const tabs: Tab[] = [
       {
         title: 'Add dependencies',
         code: `<span class="tk-param">dependencies</span>:
-  <span class="tk-param">axle_serverpod</span>: <span class="tk-str">^0.1.0</span>
+  <span class="tk-param">axle_serverpod</span>: <span class="tk-str">^0.2.0</span>
   <span class="tk-param">serverpod</span>: <span class="tk-str">^4.0.0</span>
 <span class="tk-param">dev_dependencies</span>:
-  <span class="tk-param">axle_cli</span>: <span class="tk-str">^0.1.0</span>`,
+  <span class="tk-param">axle_cli</span>: <span class="tk-str">^0.2.0</span>`,
       },
       {
         title: 'Create axle.yaml',

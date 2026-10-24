@@ -15,11 +15,11 @@ For a Relic project:
 
 ```yaml
 dependencies:
-  axle_relic: ^0.1.0
+  axle_relic: ^0.2.0
   relic: ^2.0.0-rc.2
 
 dev_dependencies:
-  axle_cli: ^0.1.0
+  axle_cli: ^0.2.0
 ```
 
 `axle_relic` re-exports `axle_core`, so Relic apps only need `axle_relic` plus
@@ -28,11 +28,11 @@ the CLI. For Shelf, depend on `axle_shelf` and `shelf` instead. For Serverpod
 
 ```yaml
 dependencies:
-  axle_serverpod: ^0.1.0
+  axle_serverpod: ^0.2.0
   serverpod: ^4.0.0
 
 dev_dependencies:
-  axle_cli: ^0.1.0
+  axle_cli: ^0.2.0
 ```
 
 `axle_serverpod` also re-exports `axle_core`. Its docs routes run on
@@ -57,7 +57,7 @@ source of truth for global API identity and generator paths — `gen` never read
 openapi: 3.1.0
 info:
   title: Todo API
-  version: 0.1.0
+  version: 0.2.0
   description: A Relic Todo API.
 generate:
   scan:
@@ -68,10 +68,10 @@ generate:
     dart: lib/src/generated/openapi.g.dart
 ```
 
-There is no `servers`, `docs`, `swagger_ui_url`, `tags`, or `security` block.
-The framework owns the runtime address, tags stay on `@ApiRoute`, and security
-is not part of the contract yet. The YAML artifact path is derived from the
-JSON path, so the two can never drift in configuration. See the
+`axle.yaml` also accepts optional `servers`, `tags`, `externalDocs`, and
+`security` metadata. Route tags stay on `@ApiRoute`; security schemes are
+declared once under `security.schemes`. The YAML artifact path is derived from
+the JSON path, so the two can never drift in configuration. See the
 [axle.yaml reference](/reference/axle-yaml) for the full rules.
 
 ## 3. Annotate a handler and its DTOs
@@ -223,6 +223,40 @@ API server port (`8090`). The example mounts the UI at `/swagger`:
 
 `serverpod start` lists API Endpoint methods in its terminal UI and Insights;
 web-server routes such as `/greeting` are intentionally not in that list.
+
+## 7. Secure endpoints
+
+Declare reusable schemes in `axle.yaml`:
+
+```yaml
+security:
+  schemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  default:
+    - bearerAuth
+```
+
+Then reference them from a route:
+
+```dart
+@ApiRoute(
+  method: ApiMethod.get,
+  path: '/me',
+  security: [ApiSecurityRequirement(['bearerAuth'])],
+  responses: [ApiResponse.ok(UserDto)],
+)
+Future<Result> me(Request request) async { ... }
+```
+
+`security: []` makes one operation public. Multiple requirements are
+alternatives (OR); multiple schemes in one requirement are combined (AND).
+Swagger UI will show the Authorize flow from the generated schemes.
+
+Security metadata describes the contract only. Keep enforcing auth in your
+framework middleware, Serverpod auth, or a reverse proxy.
 
 ## Complete examples
 

@@ -19,3 +19,29 @@ jobs:
         run: dart pub get
       - name: Run workspace checks
         run: dart run melos run check
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build documentation
+        working-directory: doc
+        run: |
+          npm ci
+          npm run docs:build
+      - name: Validate generated OpenAPI examples
+        # security-defined is intentionally skipped: the examples mix public
+        # and protected routes, and axle validates scheme references itself.
+        run: |
+          npx --yes @redocly/cli@2.71.0 lint \
+            packages/axle_relic/example/openapi.json \
+            --skip-rule=no-empty-servers \
+            --skip-rule=security-defined \
+            --skip-rule=info-license-strict \
+            --skip-rule=info-license \
+            --skip-rule=operation-4xx-response
+          npx --yes @redocly/cli@2.71.0 lint \
+            packages/axle_shelf/example/openapi.json \
+            --skip-rule=no-empty-servers \
+            --skip-rule=security-defined \
+            --skip-rule=info-license-strict \
+            --skip-rule=info-license \
+            --skip-rule=operation-4xx-response

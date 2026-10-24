@@ -23,8 +23,8 @@ An OpenAPI document is a contract description, not an implementation:
 
 ## What axle is not
 
-- An auth system. Security metadata is deferred; emitting it without
-  enforcement would be a false contract.
+- An auth system. It can describe security schemes and requirements, but the
+  application still enforces auth.
 - A router, runtime registry, or route-discovery mechanism.
 - A request validator or serializer.
 - A substitute for framework middleware.
@@ -45,13 +45,16 @@ serialize responses — the server framework owns all runtime behavior.
 Detail: [Packages](/packages/). Architecture: [How It Works](/guide/how-it-works).
 Rationale: [Design Decisions](/guide/design-decisions).
 
-## Scope for v0.1
+## Scope for v0.2
 
 - Server-side Dart only. Relic, Shelf, and Serverpod adapters; framework-agnostic core.
 - Handlers must be **top-level functions**. Closures cannot carry annotations;
   methods are not discovered.
 - One spec per package. No build_runner mode.
-- No security schemes, no validation, no runtime route discovery.
-- Class/method endpoint discovery is deferred.
-- Packages are pre-1.0. Use the published `0.1.0` packages where available,
-  or `path:` dependencies while developing against the repo workspace.
+- Security schemes, response headers, cookies, multiple media types, parameter
+  constraints, and explicit `oneOf` discriminators are supported. Runtime
+  enforcement, validation, and route discovery are not.
+- Automatic `allOf`/`anyOf` and sealed-hierarchy inference are deferred.
+- Packages are pre-1.0. This release line targets `0.2.0`; use the published
+  `0.2.x` packages where available, or `path:` dependencies while developing
+  against the repo workspace.

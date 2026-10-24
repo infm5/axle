@@ -5,20 +5,20 @@ import CodeCarousel from './CodeCarousel.vue'
 <template>
   <div class="ax-hero">
     <div class="ax-banner">
-      Early 0.1.0 docs · Relic, Shelf &amp; Serverpod adapters
+      v0.2.0 docs · Relic, Shelf &amp; Serverpod adapters
       <a href="/guide/roadmap">View roadmap →</a>
     </div>
     <div class="ax-grid">
       <div class="ax-left">
-        <div class="ax-version">☆ axle v0.1.0 — pre-release documentation</div>
+        <div class="ax-version">☆ axle v0.2.0 — OpenAPI 3.1 for Dart</div>
         <h1 class="ax-title">
           Document Dart APIs.<br />
           <span>Without the drift.</span>
         </h1>
         <p class="ax-sub">
-          Annotate your routes once — get a verified OpenAPI 3.1 spec and
-          hosted Swagger UI on all of them. Universal adapters hook it up to
-          Relic, Shelf, and Serverpod today, and to your framework tomorrow.
+          Annotate your routes once — get a verified OpenAPI 3.1 spec with
+          security schemes, response headers, cookies, media types, constraints,
+          and discriminators, plus hosted Swagger UI on every adapter.
         </p>
         <div class="ax-cta">
           <a class="ax-btn-primary" href="/guide/getting-started">Get Started <span>→</span></a>
