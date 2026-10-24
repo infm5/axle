@@ -1,0 +1,54 @@
+# Copy this file to the project root as `axle.yaml`, then replace the
+# placeholders. Keep global metadata and security schemes here; keep route
+# details on @ApiRoute and schema details on DTOs.
+openapi: 3.1.0
+
+info:
+  title: __PROJECT_TITLE__
+  version: __API_VERSION__
+  description: __ONE_SENTENCE_DESCRIPTION__
+  # termsOfService: https://example.com/terms
+  # contact:
+  #   name: API Team
+  #   email: api@example.com
+  # license:
+  #   name: MIT
+
+# Optional; omit when the deployment address is unknown or the app is reached
+# through the current origin.
+# servers:
+#   - url: https://api.example.com
+#     description: Production
+
+# Optional global tag descriptions.
+# tags:
+#   - name: Users
+#     description: User lifecycle and profile operations.
+
+# Optional external documentation.
+# externalDocs:
+#   url: https://docs.example.com
+#   description: Full API documentation.
+
+# Uncomment when the API has schemes. Define every scheme before referencing
+# it from @ApiRoute.
+# security:
+#   schemes:
+#     bearerAuth:
+#       type: http
+#       scheme: bearer
+#       bearerFormat: JWT
+#     apiKey:
+#       type: apiKey
+#       in: header
+#       name: X-API-Key
+#   default:
+#     - bearerAuth
+
+generate:
+  scan:
+    - lib
+  output:
+    json: openapi.json
+    ui: assets/swagger-ui
+    dart: lib/src/generated/openapi.g.dart

@@ -264,6 +264,19 @@ directory to an adapter to self-host the UI; no extra asset package is required.
 The CDN URL remains available as an opt-in fallback and is pinned with SRI
 hashes.
 
+## Agent skill
+
+The repository ships an agent skill that walks from installation to generated
+OpenAPI 3.1 docs and verification:
+
+```sh
+npx skills add infm5/axle --skill axle-openapi-setup
+```
+
+It covers Relic, Shelf, Serverpod web routes, custom adapters, DTOs, security,
+response headers, media types, multipart uploads, `oneOf`, docs quality checks,
+and troubleshooting. See [`skills/axle-openapi-setup`](skills/axle-openapi-setup).
+
 ## Development
 
 See [`docs/axle-roadmap.md`](docs/axle-roadmap.md) for the full design, scope,
