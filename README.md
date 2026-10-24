@@ -1,6 +1,8 @@
 # axle
 
-OpenAPI 3.1 documentation for Dart servers, with adapters for [Relic](https://pub.dev/packages/relic) and [Shelf](https://pub.dev/packages/shelf).
+OpenAPI 3.1 documentation for Dart servers, with adapters for
+[Relic](https://pub.dev/packages/relic), [Shelf](https://pub.dev/packages/shelf),
+and Serverpod 4 web-server routes.
 
 axle is a small CLI plus a thin runtime. Annotate top-level handlers and DTOs, run the
 generator, and serve the result:
@@ -13,6 +15,19 @@ generator, and serve the result:
 
 The generator uses `package:analyzer`, so the spec is built from your Dart source
 without `dart:mirrors` or a runtime registry.
+
+## What's new in 0.2
+
+- Security schemes (`http`, `apiKey`, `oauth2`, `openIdConnect`), global
+  defaults, per-route requirements, scopes, and public route overrides.
+- Response headers, cookie parameters, multiple request/response media types,
+  and multipart bodies with binary file properties.
+- Parameter and property constraints: formats, enums, numeric bounds, string
+  lengths, and patterns.
+- Explicit `oneOf` schemas with discriminator mappings.
+- Global tags, external docs, terms of service, and optional servers.
+- Relic and Shelf examples now exercise these features against live handlers,
+  including real API key checks, content negotiation, and multipart uploads.
 
 ## Packages
 
@@ -30,11 +45,11 @@ Add the packages to a Relic project:
 
 ```yaml
 dependencies:
-  axle_relic: ^0.1.0
+  axle_relic: ^0.2.0
   relic: ^2.0.0-rc.2
 
 dev_dependencies:
-  axle_cli: ^0.1.0
+  axle_cli: ^0.2.0
 ```
 
 `axle_relic` re-exports `axle_core`'s annotations and document model, so Relic
@@ -44,9 +59,9 @@ dependency for other framework adapters.
 Relic 2.0.0 is currently a release candidate. Pin `^2.0.0-rc.2` until the stable
 2.x release is available, then update to `^2.0.0`.
 
-> The packages are being prepared for their first publication. Until then, use
-> `path:` dependencies (or the workspace in this repository) instead of version
-> constraints.
+> This workspace is the `0.2.0` release line. Use the published `0.2.x`
+> packages when available, or `path:` dependencies while developing against the
+> repository workspace.
 
 Create the project configuration:
 
@@ -62,7 +77,7 @@ source of truth for global API identity and generator paths; `gen` never reads
 openapi: 3.1.0
 info:
   title: Todo API
-  version: 0.1.0
+  version: 0.2.0
   description: A Relic Todo API.
 generate:
   scan:
@@ -73,9 +88,10 @@ generate:
     dart: lib/src/generated/openapi.g.dart
 ```
 
-There is no `servers`, `docs`, `swagger_ui_url`, `tags`, or `security` block.
-The runtime framework owns the address; tags stay on `@ApiRoute`; security is not
-part of the contract yet.
+Global OpenAPI metadata is opt-in: `servers`, `tags`, `externalDocs`, and
+`security` can be declared in `axle.yaml`. Route-level tags and security stay on
+`@ApiRoute`. Security metadata describes the contract; the application still
+enforces auth.
 
 `generate.output.json` is the spec path setting. The YAML file is derived by
 replacing `.json` with `.yaml`, so the two artifacts cannot drift in config.
@@ -130,7 +146,10 @@ await app.serve();
 ```
 
 A complete runnable example is in
-[`packages/axle_relic/example`](packages/axle_relic/example).
+[`packages/axle_relic/example`](packages/axle_relic/example). It includes
+protected `/todos/stats` and `/todos/import` routes, response headers, cookies,
+`application/vnd.axle+json` negotiation, constraints, a `oneOf` activity
+endpoint, and multipart upload handling.
 
 For Shelf, depend on `axle_shelf` and `shelf`, then mount the docs handler:
 
@@ -145,7 +164,9 @@ final handler = axleDocsHandler(
 
 See [`packages/axle_shelf`](packages/axle_shelf) for composition and local-asset
 examples, including a complete runnable Todo API in
-[`packages/axle_shelf/example`](packages/axle_shelf/example).
+[`packages/axle_shelf/example`](packages/axle_shelf/example) with the same
+security, headers, cookies, content negotiation, constraints, `oneOf`, and
+multipart coverage.
 
 ## CLI
 
@@ -167,8 +188,54 @@ out of date, which is useful in CI.
   `List`/`Set`, `Map<String, T>`, nullability, `DateTime`, `Uri`, `Duration`,
   `BigInt`, and `Uint8List`/`ByteData`.
 - `@JsonKey(name: ...)` and `@ApiProperty(name: ...)` property names.
-- Path, query, and header parameters, JSON request bodies, and responses.
+- Path, query, header, and cookie parameters, JSON/multipart request bodies,
+  responses, response headers, and multiple media types.
+- Parameter and property constraints: formats, enums, min/max, length, and
+  patterns.
+- Security schemes (`http`, `apiKey`, `oauth2`, `openIdConnect`) and per-route
+  security requirements.
+- `oneOf` discriminators on schema classes.
 - Deterministic path and schema ordering for clean diffs.
+
+## Security
+
+Define reusable schemes in `axle.yaml`:
+
+```yaml
+security:
+  schemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  default:
+    - bearerAuth
+```
+
+Then opt routes in or out:
+
+```dart
+@ApiRoute(
+  method: ApiMethod.get,
+  path: '/me',
+  security: [ApiSecurityRequirement(['bearerAuth'])],
+  responses: [ApiResponse.ok(UserDto)],
+)
+Future<Result> me(Request request) async { ... }
+
+@ApiRoute(
+  method: ApiMethod.get,
+  path: '/health',
+  security: [],
+  responses: [ApiResponse.ok(HealthDto)],
+)
+Future<Result> health(Request request) async { ... }
+```
+
+`security: []` makes one operation public. Multiple requirements are
+alternatives (OR); multiple schemes in one requirement must all be satisfied
+(AND). Swagger UI shows the Authorize flow automatically. The adapter does not
+enforce auth; keep using framework middleware.
 
 ## Limitations
 
@@ -179,8 +246,11 @@ out of date, which is useful in CI.
   `ignore: true` to their annotation.
 - Relic 2.0.0-rc.2, Shelf, and Serverpod 4.x are the current adapter targets.
   The Dart Frog adapter is not included yet.
-- Global `json_serializable` field renaming is not read yet. Use `@JsonKey` or
-  `@ApiProperty` for custom names.
+- Automatic `allOf`/`anyOf` inference, polymorphic hierarchies without explicit
+  `@ApiSchema(oneOf: ...)`, and automatic `json_serializable` rename rules are
+  not supported yet.
+- Security metadata is declarative only. Auth enforcement, token validation, and
+  middleware remain application-owned.
 
 ## Adapters
 

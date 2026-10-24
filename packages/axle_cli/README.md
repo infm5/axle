@@ -8,7 +8,7 @@ As a dev dependency (recommended — `dart run` resolves it from your package):
 
 ```yaml
 dev_dependencies:
-  axle_cli: ^0.1.0
+  axle_cli: ^0.2.0
 ```
 
 Or globally, once published:
@@ -44,7 +44,7 @@ license and notice are included in `THIRD_PARTY_LICENSES/` and
 openapi: 3.1.0
 info:
   title: Todo API
-  version: 0.1.0
+  version: 0.2.0
 generate:
   scan:
     - lib
@@ -55,16 +55,24 @@ generate:
 ```
 
 The Dart artifact is a `const String axleOpenApiJson` that can be imported by the
-server, so no file I/O is needed at runtime. No `servers`, `docs`,
-`swagger_ui_url`, `tags`, or `security` blocks are accepted.
+server, so no file I/O is needed at runtime. `docs` and `swagger_ui_url` are
+runtime adapter concerns and are not config keys.
+
+`axle.yaml` also accepts optional `servers`, `tags`, `externalDocs`, and
+`security` metadata. Security schemes live under `security.schemes`; a global
+`security.default` list applies to every operation. Route-level requirements use
+`@ApiRoute(security: ...)` and `security: []` marks one operation public. The
+generator validates every referenced scheme, but does not enforce auth.
 
 `init` does not assume a particular web framework or adapter. It prints generic
 setup guidance; use the adapter README for framework-specific mounting.
 
-Supported annotation features: path/query/header parameters, JSON request bodies,
-responses, tags, summaries, descriptions, operation ids, deprecation, DTO schemas,
-nested DTOs, enums, `List`/`Set`, `Map<String, T>`, nullability, `@JsonKey(name:)`,
-and `@ApiProperty` overrides.
+Supported annotation features: path/query/header/cookie parameters, JSON and
+multipart request bodies, multiple request/response media types, response headers,
+responses, tags, summaries, descriptions, operation ids, deprecation, security
+requirements, DTO schemas, nested DTOs, enums, `List`/`Set`, `Map<String, T>`,
+nullability, constraints (format, enum, min/max, length, pattern),
+`@JsonKey(name:)`, `@ApiProperty` overrides, and `oneOf` discriminators.
 
 See the root [README](https://github.com/infm5/axle/blob/master/README.md) for the project overview and
 [`docs/adapter-authoring.md`](https://github.com/infm5/axle/blob/master/docs/adapter-authoring.md) for the adapter

@@ -50,6 +50,37 @@ class SchemaRegistry {
           : readApiSchema(schemaAnnotation);
       final resolvedDescription = description ?? schemaData?.description;
 
+      if (schemaData != null && schemaData.oneOf.isNotEmpty) {
+        final discriminator = schemaData.discriminator;
+        if (discriminator != null &&
+            discriminator.propertyName.trim().isEmpty) {
+          throw AxleException(
+            'Discriminator for ${element.name} must have a property name.',
+            exitCode: AxleExitCode.data,
+          );
+        }
+        _schemas[name] = OpenApiSchema.oneOf(
+          [
+            for (final type in schemaData.oneOf)
+              schemaForType(type, context: '${element.name}.oneOf'),
+          ],
+          description: resolvedDescription,
+          discriminator: discriminator == null
+              ? null
+              : OpenApiDiscriminator(
+                  discriminator.propertyName,
+                  mapping: discriminator.mapping,
+                ),
+        );
+        return name;
+      }
+      if (schemaData?.discriminator != null) {
+        throw AxleException(
+          '${element.name} declares a discriminator without `oneOf`.',
+          exitCode: AxleExitCode.data,
+        );
+      }
+
       final properties = <String, OpenApiSchema>{};
       final required = <String>[];
       final fields = _fieldsOf(element)
@@ -244,6 +275,17 @@ class SchemaRegistry {
     if (description != null) schema = schema.withDescription(description);
     if (property?.example != null)
       schema = schema.withExample(property!.example);
+    if (property != null) {
+      schema = schema.withConstraints(
+        format: property.format,
+        enumValues: property.enumValues,
+        minimum: property.minimum,
+        maximum: property.maximum,
+        minLength: property.minLength,
+        maxLength: property.maxLength,
+        pattern: property.pattern,
+      );
+    }
     if (jsonKey?.defaultValue != null) {
       schema = schema.withDefaultValue(jsonKey!.defaultValue);
     }

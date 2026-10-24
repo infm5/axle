@@ -63,14 +63,41 @@ class OpenApiSpecBuilder {
         title: config.title,
         version: config.version,
         description: config.description,
+        termsOfService: config.termsOfService,
         contact: config.contact,
         license: config.license,
       ),
+      tags: config.tags,
+      externalDocs: config.externalDocs,
+      servers: config.servers,
       paths: {
         for (final path in sortedPaths) path: OpenApiPathItem(paths[path]!),
       },
-      components: OpenApiComponents(schemas: registry.schemas),
+      components: OpenApiComponents(
+        schemas: registry.schemas,
+        securitySchemes: {
+          for (final name in config.securitySchemes.keys.toList()..sort())
+            name: config.securitySchemes[name]!,
+        },
+      ),
+      security: _defaultSecurity(),
     );
+  }
+
+  List<OpenApiSecurityRequirement> _defaultSecurity() {
+    if (config.defaultSecurity.isEmpty) return const [];
+    final schemes = <String, List<String>>{};
+    for (final name in config.defaultSecurity) {
+      final scheme = config.securitySchemes[name];
+      if (scheme == null) {
+        throw AxleException(
+          '`security.default` references unknown scheme `$name`.',
+          exitCode: AxleExitCode.config,
+        );
+      }
+      schemes[name] = const [];
+    }
+    return [OpenApiSecurityRequirement(schemes)];
   }
 
   void _preRegisterSchemas(List<LibraryElement> libraries) {
@@ -119,6 +146,7 @@ class OpenApiSpecBuilder {
       parameters: _parameters(route, path, method),
       requestBody: _requestBody(route, method, path),
       responses: _responses(route, method, path),
+      security: _security(route, method, path),
     );
   }
 
@@ -146,9 +174,12 @@ class OpenApiSpecBuilder {
         );
         schema = const OpenApiSchema.string();
       } else {
-        schema = registry.schemaForType(
-          declared.type,
-          context: '$method $path path parameter $name',
+        schema = _withConstraints(
+          registry.schemaForType(
+            declared.type,
+            context: '$method $path path parameter $name',
+          ),
+          declared,
         );
         description = declared.description;
         example = declared.example;
@@ -174,9 +205,12 @@ class OpenApiSpecBuilder {
     }
 
     for (final parameter in route.queryParams) {
-      var schema = registry.schemaForType(
-        parameter.type,
-        context: '$method $path query parameter ${parameter.name}',
+      var schema = _withConstraints(
+        registry.schemaForType(
+          parameter.type,
+          context: '$method $path query parameter ${parameter.name}',
+        ),
+        parameter,
       );
       if (parameter.defaultValue != null) {
         schema = schema.withDefaultValue(parameter.defaultValue);
@@ -199,9 +233,31 @@ class OpenApiSpecBuilder {
           name: parameter.name,
           location: OpenApiParameterLocation.header,
           required: parameter.required,
-          schema: registry.schemaForType(
-            parameter.type,
-            context: '$method $path header parameter ${parameter.name}',
+          schema: _withConstraints(
+            registry.schemaForType(
+              parameter.type,
+              context: '$method $path header parameter ${parameter.name}',
+            ),
+            parameter,
+          ),
+          description: parameter.description,
+          example: parameter.example,
+        ),
+      );
+    }
+
+    for (final parameter in route.cookieParams) {
+      parameters.add(
+        OpenApiParameter(
+          name: parameter.name,
+          location: OpenApiParameterLocation.cookie,
+          required: parameter.required,
+          schema: _withConstraints(
+            registry.schemaForType(
+              parameter.type,
+              context: '$method $path cookie parameter ${parameter.name}',
+            ),
+            parameter,
           ),
           description: parameter.description,
           example: parameter.example,
@@ -212,6 +268,21 @@ class OpenApiSpecBuilder {
     return parameters;
   }
 
+  OpenApiSchema _withConstraints(
+    OpenApiSchema schema,
+    ApiParameterData parameter,
+  ) {
+    return schema.withConstraints(
+      format: parameter.format,
+      enumValues: parameter.enumValues,
+      minimum: parameter.minimum,
+      maximum: parameter.maximum,
+      minLength: parameter.minLength,
+      maxLength: parameter.maxLength,
+      pattern: parameter.pattern,
+    );
+  }
+
   OpenApiRequestBody? _requestBody(
     ApiRouteData route,
     String method,
@@ -219,11 +290,24 @@ class OpenApiSpecBuilder {
   ) {
     final body = route.body;
     if (body == null) return null;
+    if (body.contentTypes.isEmpty) {
+      throw AxleException(
+        '@ApiBody for ${method.toUpperCase()} $path must declare at least one '
+        'content type.',
+        exitCode: AxleExitCode.data,
+      );
+    }
+    final schema = registry.schemaForType(
+      body.type,
+      context: '$method $path body',
+    );
     return OpenApiRequestBody(
-      schema: registry.schemaForType(body.type, context: '$method $path body'),
       description: body.description,
       required: body.required,
-      example: body.example,
+      content: {
+        for (final contentType in body.contentTypes)
+          contentType: OpenApiMediaType(schema: schema, example: body.example),
+      },
     );
   }
 
@@ -251,6 +335,13 @@ class OpenApiSpecBuilder {
             exitCode: AxleExitCode.data,
           );
         }
+        if (response.contentTypes.isEmpty) {
+          throw AxleException(
+            'Response $key for ${method.toUpperCase()} $path must declare at '
+            'least one content type.',
+            exitCode: AxleExitCode.data,
+          );
+        }
         var schema = response.type == null
             ? null
             : registry.schemaForType(
@@ -258,12 +349,39 @@ class OpenApiSpecBuilder {
                 context: '$method $path response $key',
               );
         if (schema != null && response.nullable) schema = schema.asNullable();
+        final headers = <String, OpenApiHeader>{};
+        for (final header in response.headers) {
+          if (header.name.trim().isEmpty) {
+            throw AxleException(
+              'Response $key for ${method.toUpperCase()} $path has an empty '
+              'header name.',
+              exitCode: AxleExitCode.data,
+            );
+          }
+          headers[header.name] = OpenApiHeader(
+            schema: registry.schemaForType(
+              header.type,
+              context: '$method $path response $key header ${header.name}',
+            ),
+            description: header.description,
+            required: header.required,
+            deprecated: header.deprecated,
+          );
+        }
         responses[key] = OpenApiResponse(
           description: response.description.isEmpty
               ? _statusDescription(response.status)
               : response.description,
-          schema: schema,
-          example: response.example,
+          headers: headers,
+          content: schema == null
+              ? const {}
+              : {
+                  for (final contentType in response.contentTypes)
+                    contentType: OpenApiMediaType(
+                      schema: schema,
+                      example: response.example,
+                    ),
+                },
         );
       }
     }
@@ -271,6 +389,46 @@ class OpenApiSpecBuilder {
     final sortedKeys = responses.keys.toList()
       ..sort((a, b) => int.parse(a).compareTo(int.parse(b)));
     return {for (final key in sortedKeys) key: responses[key]!};
+  }
+
+  List<OpenApiSecurityRequirement>? _security(
+    ApiRouteData route,
+    String method,
+    String path,
+  ) {
+    final requirements = route.security;
+    if (requirements == null) return null;
+    final result = <OpenApiSecurityRequirement>[];
+    for (final requirement in requirements) {
+      final schemes = <String, List<String>>{};
+      for (final name in requirement.schemes) {
+        if (name.trim().isEmpty) {
+          throw AxleException(
+            '@ApiRoute ${method.toUpperCase()} $path has an empty security '
+            'scheme name.',
+            exitCode: AxleExitCode.data,
+          );
+        }
+        if (!config.securitySchemes.containsKey(name)) {
+          throw AxleException(
+            '@ApiRoute ${method.toUpperCase()} $path references unknown '
+            'security scheme `$name`. Define it under `security.schemes` in '
+            'axle.yaml.',
+            exitCode: AxleExitCode.data,
+          );
+        }
+        schemes[name] = requirement.scopes[name] ?? const [];
+      }
+      if (schemes.isEmpty) {
+        throw AxleException(
+          '@ApiRoute ${method.toUpperCase()} $path has an empty security '
+          'requirement. Use `security: []` to make the operation public.',
+          exitCode: AxleExitCode.data,
+        );
+      }
+      result.add(OpenApiSecurityRequirement(schemes));
+    }
+    return result;
   }
 }
 

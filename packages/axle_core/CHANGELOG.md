@@ -1,3 +1,12 @@
+## 0.2.0
+
+- Added OpenAPI security schemes, requirements, and document/operation security.
+- Added response headers and multiple request/response media types.
+- Added cookie parameter support.
+- Added parameter and property validation constraints.
+- Added `oneOf` schema discriminators.
+- Added global tags, external docs, terms of service, and optional servers.
+
 ## 0.1.0
 
 - Initial release.

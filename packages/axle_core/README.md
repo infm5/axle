@@ -5,13 +5,13 @@ helpers for Dart servers.
 
 ## Install
 
-Most apps get core transitively — `axle_relic` and `axle_shelf` re-export it.
-Depend on it directly only when building an adapter or using the document
-model standalone:
+Most apps get core transitively — `axle_relic`, `axle_shelf`, and
+`axle_serverpod` re-export it. Depend on it directly only when building an
+adapter or using the document model standalone:
 
 ```yaml
 dependencies:
-  axle_core: ^0.1.0
+  axle_core: ^0.2.0
 ```
 
 ```dart
@@ -27,8 +27,13 @@ Future<Result> getUser(Request request) async { ... }
 ```
 
 `OpenApiSchema`, `OpenApiDocument`, and the annotation classes have no framework
-dependencies. `swaggerUiHtml` returns a standalone HTML shell that loads Swagger
-UI from a CDN and points it at a spec URL.
+dependencies. The model covers security schemes and requirements, response
+headers, multiple media types, parameter/property constraints, and `oneOf`
+discriminators. `swaggerUiHtml` returns a standalone HTML shell that loads
+Swagger UI from a CDN and points it at a spec URL.
+
+Security metadata is declarative. Define schemes once and reference them from
+`@ApiRoute`; enforcement stays in the application.
 
 ## Adapter contract
 

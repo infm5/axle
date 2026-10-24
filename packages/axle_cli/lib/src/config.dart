@@ -21,8 +21,14 @@ class AxleConfig {
     required this.title,
     required this.version,
     this.description,
+    this.termsOfService,
     this.contact,
     this.license,
+    this.tags = const [],
+    this.externalDocs,
+    this.servers = const [],
+    this.securitySchemes = const {},
+    this.defaultSecurity = const [],
     this.scan = const ['lib'],
     this.jsonOutput = 'build/openapi.json',
     this.swaggerUiOutput = 'assets/swagger-ui',
@@ -44,11 +50,29 @@ class AxleConfig {
   /// A description of the API.
   final String? description;
 
+  /// A URL to the API's terms of service.
+  final String? termsOfService;
+
   /// Contact information for the API.
   final OpenApiContact? contact;
 
   /// License information for the API.
   final OpenApiLicense? license;
+
+  /// Global tag metadata.
+  final List<OpenApiTag> tags;
+
+  /// Link to external API documentation.
+  final OpenApiExternalDocs? externalDocs;
+
+  /// Optional deployment server URLs.
+  final List<OpenApiServer> servers;
+
+  /// Security schemes available to annotated routes.
+  final Map<String, OpenApiSecurityScheme> securitySchemes;
+
+  /// Scheme names applied to every operation by default.
+  final List<String> defaultSecurity;
 
   /// The directories or files scanned for annotations.
   final List<String> scan;
@@ -94,6 +118,10 @@ class AxleConfig {
     _rejectUnknownKeys(document, const {
       'openapi',
       'info',
+      'tags',
+      'externalDocs',
+      'servers',
+      'security',
       'generate',
     }, configFileName);
 
@@ -102,6 +130,7 @@ class AxleConfig {
       'title',
       'version',
       'description',
+      'termsOfService',
       'contact',
       'license',
     }, 'info');
@@ -118,6 +147,10 @@ class AxleConfig {
 
     final contact = _readContact(info['contact']);
     final license = _readLicense(info['license']);
+    final tags = _readTags(document['tags']);
+    final externalDocs = _readExternalDocs(document['externalDocs']);
+    final servers = _readServers(document['servers']);
+    final security = _readSecurity(document['security']);
 
     final generate = _asMap(document['generate'], 'generate');
     _rejectUnknownKeys(generate, const {'scan', 'output'}, 'generate');
@@ -154,8 +187,17 @@ class AxleConfig {
       title: _requiredString(info['title'], 'info.title'),
       version: _requiredString(info['version'], 'info.version'),
       description: _optionalString(info['description'], 'info.description'),
+      termsOfService: _optionalString(
+        info['termsOfService'],
+        'info.termsOfService',
+      ),
       contact: contact,
       license: license,
+      tags: tags,
+      externalDocs: externalDocs,
+      servers: servers,
+      securitySchemes: security.schemes,
+      defaultSecurity: security.defaultSecurity,
       scan: scan,
       jsonOutput: jsonOutput,
       swaggerUiOutput: swaggerUiOutput,
@@ -187,6 +229,9 @@ class AxleConfig {
     if (description != null) {
       buffer.writeln('  description: ${_yamlString(description!)}');
     }
+    if (termsOfService != null) {
+      buffer.writeln('  termsOfService: ${_yamlString(termsOfService!)}');
+    }
     if (contact != null) {
       buffer.writeln('  contact:');
       if (contact!.name != null) {
@@ -207,6 +252,62 @@ class AxleConfig {
       }
       if (license!.url != null) {
         buffer.writeln('    url: ${_yamlString(license!.url!)}');
+      }
+    }
+
+    if (tags.isNotEmpty) {
+      buffer.writeln('tags:');
+      for (final tag in tags) {
+        buffer.writeln('  - name: ${_yamlString(tag.name)}');
+        if (tag.description != null) {
+          buffer.writeln('    description: ${_yamlString(tag.description!)}');
+        }
+        if (tag.externalDocs != null) {
+          buffer.writeln('    externalDocs:');
+          buffer.writeln('      url: ${_yamlString(tag.externalDocs!.url)}');
+          if (tag.externalDocs!.description != null) {
+            buffer.writeln(
+              '      description: '
+              '${_yamlString(tag.externalDocs!.description!)}',
+            );
+          }
+        }
+      }
+    }
+    if (externalDocs != null) {
+      buffer.writeln('externalDocs:');
+      buffer.writeln('  url: ${_yamlString(externalDocs!.url)}');
+      if (externalDocs!.description != null) {
+        buffer.writeln(
+          '  description: ${_yamlString(externalDocs!.description!)}',
+        );
+      }
+    }
+    if (servers.isNotEmpty) {
+      buffer.writeln('servers:');
+      for (final server in servers) {
+        buffer.writeln('  - url: ${_yamlString(server.url)}');
+        if (server.description != null) {
+          buffer.writeln(
+            '    description: ${_yamlString(server.description!)}',
+          );
+        }
+      }
+    }
+    if (securitySchemes.isNotEmpty || defaultSecurity.isNotEmpty) {
+      buffer.writeln('security:');
+      if (securitySchemes.isNotEmpty) {
+        buffer.writeln('  schemes:');
+        for (final name in securitySchemes.keys.toList()..sort()) {
+          buffer.writeln('    ${_yamlString(name)}:');
+          _writeSecurityScheme(buffer, securitySchemes[name]!);
+        }
+      }
+      if (defaultSecurity.isNotEmpty) {
+        buffer.writeln('  default:');
+        for (final name in defaultSecurity) {
+          buffer.writeln('    - ${_yamlString(name)}');
+        }
       }
     }
 
@@ -357,6 +458,87 @@ OpenApiContact? _readContact(Object? value) {
   return contact;
 }
 
+List<OpenApiServer> _readServers(Object? value) {
+  if (value == null) return const [];
+  if (value is! YamlList) {
+    throw AxleException(
+      '`servers` must be a list of server maps.',
+      exitCode: AxleExitCode.config,
+    );
+  }
+  final servers = <OpenApiServer>[];
+  final urls = <String>{};
+  for (final entry in value) {
+    final map = _asMap(entry, 'servers[]');
+    _rejectUnknownKeys(map, const {'url', 'description'}, 'servers[]');
+    final url = _requiredString(map['url'], 'servers[].url');
+    if (!urls.add(url)) {
+      throw AxleException(
+        'Duplicate server URL `$url`.',
+        exitCode: AxleExitCode.config,
+      );
+    }
+    servers.add(
+      OpenApiServer(
+        url: url,
+        description: _optionalString(
+          map['description'],
+          'servers[].description',
+        ),
+      ),
+    );
+  }
+  return servers;
+}
+
+List<OpenApiTag> _readTags(Object? value) {
+  if (value == null) return const [];
+  if (value is! YamlList) {
+    throw AxleException(
+      '`tags` must be a list of tag maps.',
+      exitCode: AxleExitCode.config,
+    );
+  }
+  final tags = <OpenApiTag>[];
+  final names = <String>{};
+  for (final entry in value) {
+    final map = _asMap(entry, 'tags[]');
+    _rejectUnknownKeys(map, const {
+      'name',
+      'description',
+      'externalDocs',
+    }, 'tags[]');
+    final name = _requiredString(map['name'], 'tags[].name');
+    if (!names.add(name)) {
+      throw AxleException(
+        'Duplicate tag `$name`.',
+        exitCode: AxleExitCode.config,
+      );
+    }
+    tags.add(
+      OpenApiTag(
+        name: name,
+        description: _optionalString(map['description'], 'tags[].description'),
+        externalDocs: _readExternalDocs(map['externalDocs']),
+      ),
+    );
+  }
+  return tags;
+}
+
+OpenApiExternalDocs? _readExternalDocs(Object? value) {
+  if (value == null) return null;
+  final map = _asMap(value, 'externalDocs');
+  _rejectUnknownKeys(map, const {'url', 'description'}, 'externalDocs');
+  return OpenApiExternalDocs(
+    url: _requiredString(map['url'], 'externalDocs.url'),
+    description: _optionalString(
+      map['description'],
+      'externalDocs.description',
+    ),
+  );
+}
+
 OpenApiLicense? _readLicense(Object? value) {
   if (value == null) return null;
   final map = _asMap(value, 'info.license');
@@ -366,6 +548,310 @@ OpenApiLicense? _readLicense(Object? value) {
     identifier: _optionalString(map['identifier'], 'info.license.identifier'),
     url: _optionalString(map['url'], 'info.license.url'),
   );
+}
+
+class _SecurityConfig {
+  const _SecurityConfig({
+    this.schemes = const {},
+    this.defaultSecurity = const [],
+  });
+
+  final Map<String, OpenApiSecurityScheme> schemes;
+  final List<String> defaultSecurity;
+}
+
+_SecurityConfig _readSecurity(Object? value) {
+  if (value == null) return const _SecurityConfig();
+  final map = _asMap(value, 'security');
+  _rejectUnknownKeys(map, const {'schemes', 'default'}, 'security');
+
+  final schemes = <String, OpenApiSecurityScheme>{};
+  if (map['schemes'] != null) {
+    final schemesMap = _asMap(map['schemes'], 'security.schemes');
+    for (final entry in schemesMap.entries) {
+      final name = entry.key;
+      if (name is! String || name.trim().isEmpty) {
+        throw AxleException(
+          '`security.schemes` keys must be non-empty strings.',
+          exitCode: AxleExitCode.config,
+        );
+      }
+      schemes[name] = _readSecurityScheme(
+        entry.value,
+        'security.schemes.$name',
+      );
+    }
+  }
+
+  final defaultSecurity = _optionalStringList(
+    map['default'],
+    'security.default',
+  );
+  for (final name in defaultSecurity) {
+    if (!schemes.containsKey(name)) {
+      throw AxleException(
+        '`security.default` references unknown scheme `$name`.',
+        exitCode: AxleExitCode.config,
+      );
+    }
+  }
+  return _SecurityConfig(schemes: schemes, defaultSecurity: defaultSecurity);
+}
+
+OpenApiSecurityScheme _readSecurityScheme(Object? value, String path) {
+  final map = _asMap(value, path);
+  final type = _requiredString(map['type'], '$path.type');
+  switch (type) {
+    case 'http':
+      _rejectUnknownKeys(map, const {
+        'type',
+        'description',
+        'scheme',
+        'bearerFormat',
+      }, path);
+      return OpenApiSecurityScheme(
+        type: type,
+        description: _optionalString(map['description'], '$path.description'),
+        scheme: _requiredString(map['scheme'], '$path.scheme'),
+        bearerFormat: _optionalString(
+          map['bearerFormat'],
+          '$path.bearerFormat',
+        ),
+      );
+    case 'apiKey':
+      _rejectUnknownKeys(map, const {
+        'type',
+        'description',
+        'name',
+        'in',
+      }, path);
+      final location = _requiredString(map['in'], '$path.in');
+      if (!const {'header', 'query', 'cookie'}.contains(location)) {
+        throw AxleException(
+          '`$path.in` must be `header`, `query`, or `cookie`.',
+          exitCode: AxleExitCode.config,
+        );
+      }
+      return OpenApiSecurityScheme(
+        type: type,
+        description: _optionalString(map['description'], '$path.description'),
+        name: _requiredString(map['name'], '$path.name'),
+        location: location,
+      );
+    case 'oauth2':
+      _rejectUnknownKeys(map, const {'type', 'description', 'flows'}, path);
+      return OpenApiSecurityScheme(
+        type: type,
+        description: _optionalString(map['description'], '$path.description'),
+        flows: _readOAuthFlows(map['flows'], '$path.flows'),
+      );
+    case 'openIdConnect':
+      _rejectUnknownKeys(map, const {
+        'type',
+        'description',
+        'openIdConnectUrl',
+      }, path);
+      return OpenApiSecurityScheme(
+        type: type,
+        description: _optionalString(map['description'], '$path.description'),
+        openIdConnectUrl: _requiredString(
+          map['openIdConnectUrl'],
+          '$path.openIdConnectUrl',
+        ),
+      );
+    default:
+      throw AxleException(
+        '`$path.type` must be `http`, `apiKey`, `oauth2`, or '
+        '`openIdConnect`, but was `$type`.',
+        exitCode: AxleExitCode.config,
+      );
+  }
+}
+
+OpenApiOAuthFlows _readOAuthFlows(Object? value, String path) {
+  final map = _asMap(value, path);
+  _rejectUnknownKeys(map, const {
+    'implicit',
+    'password',
+    'clientCredentials',
+    'authorizationCode',
+  }, path);
+  final implicit = map['implicit'] == null
+      ? null
+      : _readOAuthFlow(map['implicit'], '$path.implicit');
+  final password = map['password'] == null
+      ? null
+      : _readOAuthFlow(map['password'], '$path.password');
+  final clientCredentials = map['clientCredentials'] == null
+      ? null
+      : _readOAuthFlow(map['clientCredentials'], '$path.clientCredentials');
+  final authorizationCode = map['authorizationCode'] == null
+      ? null
+      : _readOAuthFlow(map['authorizationCode'], '$path.authorizationCode');
+  if (implicit == null &&
+      password == null &&
+      clientCredentials == null &&
+      authorizationCode == null) {
+    throw AxleException(
+      '`$path` must define at least one OAuth2 flow.',
+      exitCode: AxleExitCode.config,
+    );
+  }
+  if (implicit != null && implicit.authorizationUrl == null) {
+    throw AxleException(
+      '`$path.implicit.authorizationUrl` is required.',
+      exitCode: AxleExitCode.config,
+    );
+  }
+  if (password != null && password.tokenUrl == null) {
+    throw AxleException(
+      '`$path.password.tokenUrl` is required.',
+      exitCode: AxleExitCode.config,
+    );
+  }
+  if (clientCredentials != null && clientCredentials.tokenUrl == null) {
+    throw AxleException(
+      '`$path.clientCredentials.tokenUrl` is required.',
+      exitCode: AxleExitCode.config,
+    );
+  }
+  if (authorizationCode != null &&
+      (authorizationCode.authorizationUrl == null ||
+          authorizationCode.tokenUrl == null)) {
+    throw AxleException(
+      '`$path.authorizationCode` requires both `authorizationUrl` and '
+      '`tokenUrl`.',
+      exitCode: AxleExitCode.config,
+    );
+  }
+  return OpenApiOAuthFlows(
+    implicit: implicit,
+    password: password,
+    clientCredentials: clientCredentials,
+    authorizationCode: authorizationCode,
+  );
+}
+
+OpenApiOAuthFlow _readOAuthFlow(Object? value, String path) {
+  final map = _asMap(value, path);
+  _rejectUnknownKeys(map, const {
+    'authorizationUrl',
+    'tokenUrl',
+    'refreshUrl',
+    'scopes',
+  }, path);
+  return OpenApiOAuthFlow(
+    authorizationUrl: _optionalString(
+      map['authorizationUrl'],
+      '$path.authorizationUrl',
+    ),
+    tokenUrl: _optionalString(map['tokenUrl'], '$path.tokenUrl'),
+    refreshUrl: _optionalString(map['refreshUrl'], '$path.refreshUrl'),
+    scopes: map['scopes'] == null
+        ? const {}
+        : _stringMap(map['scopes'], '$path.scopes'),
+  );
+}
+
+Map<String, String> _stringMap(Object? value, String path) {
+  final map = _asMap(value, path);
+  final result = <String, String>{};
+  for (final entry in map.entries) {
+    if (entry.key is! String || entry.value is! String) {
+      throw AxleException(
+        '`$path` must contain string keys and values.',
+        exitCode: AxleExitCode.config,
+      );
+    }
+    result[entry.key as String] = entry.value as String;
+  }
+  return result;
+}
+
+List<String> _optionalStringList(Object? value, String name) {
+  if (value == null) return const [];
+  if (value is! YamlList) {
+    throw AxleException(
+      '`$name` must be a list of strings.',
+      exitCode: AxleExitCode.config,
+    );
+  }
+  final result = <String>[];
+  for (final entry in value) {
+    if (entry is! String || entry.trim().isEmpty) {
+      throw AxleException(
+        'Each entry in `$name` must be a non-empty string.',
+        exitCode: AxleExitCode.config,
+      );
+    }
+    result.add(entry);
+  }
+  return result;
+}
+
+void _writeSecurityScheme(StringBuffer buffer, OpenApiSecurityScheme scheme) {
+  buffer.writeln('      type: ${_yamlString(scheme.type)}');
+  if (scheme.description != null) {
+    buffer.writeln('      description: ${_yamlString(scheme.description!)}');
+  }
+  if (scheme.name != null) {
+    buffer.writeln('      name: ${_yamlString(scheme.name!)}');
+  }
+  if (scheme.location != null) {
+    buffer.writeln('      in: ${_yamlString(scheme.location!)}');
+  }
+  if (scheme.scheme != null) {
+    buffer.writeln('      scheme: ${_yamlString(scheme.scheme!)}');
+  }
+  if (scheme.bearerFormat != null) {
+    buffer.writeln('      bearerFormat: ${_yamlString(scheme.bearerFormat!)}');
+  }
+  if (scheme.openIdConnectUrl != null) {
+    buffer.writeln(
+      '      openIdConnectUrl: ${_yamlString(scheme.openIdConnectUrl!)}',
+    );
+  }
+  final flows = scheme.flows;
+  if (flows != null) {
+    buffer.writeln('      flows:');
+    if (flows.implicit != null) {
+      _writeOAuthFlow(buffer, 'implicit', flows.implicit!);
+    }
+    if (flows.password != null) {
+      _writeOAuthFlow(buffer, 'password', flows.password!);
+    }
+    if (flows.clientCredentials != null) {
+      _writeOAuthFlow(buffer, 'clientCredentials', flows.clientCredentials!);
+    }
+    if (flows.authorizationCode != null) {
+      _writeOAuthFlow(buffer, 'authorizationCode', flows.authorizationCode!);
+    }
+  }
+}
+
+void _writeOAuthFlow(StringBuffer buffer, String name, OpenApiOAuthFlow flow) {
+  buffer.writeln('        $name:');
+  if (flow.authorizationUrl != null) {
+    buffer.writeln(
+      '          authorizationUrl: ${_yamlString(flow.authorizationUrl!)}',
+    );
+  }
+  if (flow.tokenUrl != null) {
+    buffer.writeln('          tokenUrl: ${_yamlString(flow.tokenUrl!)}');
+  }
+  if (flow.refreshUrl != null) {
+    buffer.writeln('          refreshUrl: ${_yamlString(flow.refreshUrl!)}');
+  }
+  if (flow.scopes.isEmpty) {
+    buffer.writeln('          scopes: {}');
+  } else {
+    buffer.writeln('          scopes:');
+    for (final entry in flow.scopes.entries) {
+      buffer.writeln(
+        '            ${_yamlString(entry.key)}: ${_yamlString(entry.value)}',
+      );
+    }
+  }
 }
 
 void _rejectUnknownKeys(YamlMap map, Set<String> allowed, String path) {

@@ -50,13 +50,10 @@ axle should produce a trustworthy contract and stay out of runtime behavior it d
 
 ## 2. Non-Goals for v0.1
 
-- Auth enforcement or security-scheme metadata.
-- Request/response validation.
+- Auth enforcement or request/response validation.
 - Runtime route discovery.
 - Route discovery from Relic internals.
-- Server URL configuration in `axle.yaml`.
 - Swagger UI URL configuration in `axle.yaml`.
-- Top-level tag descriptions in `axle.yaml`.
 - Dart Frog adapter. Serverpod is covered in Phase 2.
 - Class/method endpoint discovery.
 - Build runner integration.
@@ -191,8 +188,9 @@ Current state:
 
 - Examples live at `packages/axle_relic/example/` and `packages/axle_shelf/example/`.
 - They are runnable Todo APIs with models, an in-memory repository, route modules, shared HTTP helpers, generated specs, generated `openapi.g.dart`, and local Swagger UI assets.
-- `/health`, `/todos`, `/openapi.json`, `/docs`, and `/docs-assets` were verified against live servers.
-- The examples have no tests; `gen --check` is the build-level verification.
+- They exercise API key security, response headers, cookie parameters, content negotiation, constraints, `oneOf` activity schemas, and multipart uploads with binary file properties.
+- The `/health`, collection, stats, activity, import, spec, docs, and asset routes were verified against live Relic and Shelf servers.
+- The examples have no unit tests; `gen --check` and live smoke checks are the build-level verification.
 
 ### CI
 
@@ -202,13 +200,16 @@ Current state:
 
 ### Resolved in the Phase 0 pass
 
-- `axle.yaml` now contains only `openapi`, `info`, and `generate`.
-- `servers`, `docs`, `swagger_ui_url`, `tags`, and `security` are no longer accepted.
+- `axle.yaml` was reduced to `openapi`, `info`, and `generate`.
+- `docs` and `swagger_ui_url` remain runtime adapter concerns and are rejected.
 - `init` no longer accepts `--title`, `--version`, `--docs-path`, or `--spec-path`.
 - The example moved into `packages/axle_relic/example/`.
 - The docs title is derived from the spec's `info.title`.
 - Config parsing rejects unknown keys and paths outside the project root.
-- Security remains intentionally deferred.
+
+The 0.2.0 contract expansion added opt-in `servers`, `tags`, `externalDocs`,
+security metadata, response headers, cookies, media types, constraints, and
+`oneOf`; security enforcement remains application-owned.
 
 ---
 
@@ -224,7 +225,8 @@ Current state:
 | Config source | `axle.yaml` + annotations | YAML owns global contract identity; code owns route/type facts |
 | Swagger UI | Core HTML helper + adapter routes | Shared across adapters |
 | Example tests | None for now | Keep the example a clean integration demo |
-| Security | Deferred | Do not declare auth that axle does not enforce |
+| Security | Metadata only | Describe schemes and requirements; enforcement stays application-owned |
+| Servers/tags | Opt-in YAML | Global metadata when explicitly configured; otherwise omitted |
 
 ### Why not build_runner
 
@@ -259,7 +261,7 @@ openapi: 3.1.0
 
 info:
   title: Todo API
-  version: 0.1.0
+  version: 0.2.0
   description: A Relic Todo API.
   contact:
     name: Example
@@ -287,13 +289,25 @@ generate:
 - `openapi.yaml` is derived by replacing the JSON extension with `.yaml`; there is no separate YAML setting.
 - `info` maps to the OpenAPI Info Object.
 - `openapi` must be a supported 3.1.x version.
-- No `servers`, `docs`, `swagger_ui_url`, `tags`, or `security` in YAML.
+- No `docs` or `swagger_ui_url` in YAML.
 
-### Why no `servers`
+### Why optional `servers`
 
-Relic owns the host and port. Duplicating a server URL in axle creates runtime drift. Swagger UI will use the current origin when no servers are declared.
+Relic owns the host and port in the default setup. An explicit `servers` list is
+opt-in for client generators, gateways, and proxied deployments. When omitted,
+Swagger UI uses the current origin.
 
-If explicit deployment servers become necessary later, add an opt-in advanced field; do not make it a default.
+### Why optional `tags`
+
+Operation tags stay on `@ApiRoute(tags: [...])`. Top-level `tags` entries add
+descriptions and external links for those names.
+
+### Why optional `security`
+
+Security metadata is opt-in because not every app protects the same routes the
+same way. Schemes are declared under `security.schemes`; routes opt in with
+`@ApiRoute(security: ...)`, and `security: []` marks a public route. axle emits
+the OpenAPI contract but never enforces auth.
 
 ### Why no `docs`
 
@@ -304,20 +318,6 @@ Docs routing and UI title are runtime adapter concerns:
 - The Swagger UI asset URL defaults to a pinned `defaultSwaggerUiUrl` with SRI hashes in `axle_core`; `axle gen` writes local assets for adapters that accept `swaggerUiDirectory`.
 
 No duplicated title or URL in YAML.
-
-### Why no `tags`
-
-Tags belong on `@ApiRoute(tags: [...])` because they are operation-local. Top-level tag descriptions are optional OpenAPI metadata and can be added later as an explicit feature.
-
-### Why no `security`
-
-Security is a real OpenAPI feature, but it requires:
-
-1. A scheme registry.
-2. A truthful mapping from routes to schemes.
-3. Runtime middleware that actually enforces it.
-
-axle currently does none of these. Emitting security metadata without enforcement would create a false contract.
 
 ---
 
@@ -337,8 +337,10 @@ Fields:
 - `pathParams`
 - `queryParams`
 - `headerParams`
+- `cookieParams`
 - `body`
 - `responses`
+- `security`
 - `ignore`
 
 Repeated annotations are allowed. Set a unique `operationId` when annotating the same handler more than once.
@@ -348,19 +350,23 @@ Repeated annotations are allowed. Set a unique `operationId` when annotating the
 - `ApiPathParam(name, type: ...)`
 - `ApiQueryParam(name, type: ..., required: ...)`
 - `ApiHeaderParam(name, type: ..., required: ...)`
+- `ApiCookieParam(name, type: ..., required: ...)`
 
-Parameters carry a Dart `Type` literal, not a nullable type literal. Nullability is expressed with `ApiResponse(nullable: true)` or by the Dart field type for DTOs.
+Parameters carry a Dart `Type` literal, not a nullable type literal. Nullability is expressed with `ApiResponse(nullable: true)` or by the Dart field type for DTOs. All parameter classes accept `format`, `enumValues`, `minimum`, `maximum`, `minLength`, `maxLength`, and `pattern`.
 
 ### Body and responses
 
-- `ApiBody(type: ...)`
-- `ApiResponse(status: ..., type: ..., nullable: ...)`
+- `ApiBody(type: ..., contentTypes: [...])`
+- `ApiResponse(status: ..., type: ..., nullable: ..., headers: ..., contentTypes: ...)`
+- `ApiResponseHeader(name, type: ..., description: ..., required: ...)`
 - Convenience constructors: `ApiResponse.ok`, `created`, `noContent`, `badRequest`, `notFound`, `internalServerError`
+- `ApiSecurityRequirement(schemes, scopes: ...)` on `@ApiRoute(security: ...)`
 
 ### Schemas and properties
 
-- `@ApiSchema(name: ..., description: ..., ignore: ...)` on classes.
-- `@ApiProperty(name: ..., description: ..., example: ..., required: ..., ignore: ...)` on fields.
+- `@ApiSchema(name: ..., description: ..., oneOf: [...], discriminator: ..., ignore: ...)` on classes.
+- `@ApiDiscriminator(propertyName, mapping: ...)` for `oneOf` schemas.
+- `@ApiProperty(name: ..., description: ..., example: ..., required: ..., format: ..., enumValues: ..., minimum: ..., maximum: ..., minLength: ..., maxLength: ..., pattern: ..., ignore: ...)` on fields.
 - `@JsonKey(name: ...)` is read when the project depends on `json_annotation`.
 
 ### Naming defaults
@@ -415,8 +421,8 @@ Overrides are optional and should be used only for stable public contracts.
 - Mixins as DTO types.
 - Custom `JsonValue` / `JsonEnum` serialization.
 - Global `json_serializable` field rename rules.
-- Polymorphic/sealed-class schemas.
-- `oneOf`/`allOf`/`discriminator` generation from class hierarchies.
+- Automatic polymorphic/sealed-class inference.
+- Automatic `allOf`/`anyOf` generation. Explicit `oneOf` with a discriminator is supported.
 
 These are documented limitations, not silent guesses.
 
@@ -512,20 +518,18 @@ No auth, route discovery, or generation belongs here.
 
 ---
 
-## 11. Security: Deferred Design Hook
+## 11. Security Metadata
 
-Security is intentionally out of scope for v0.1.
+Security metadata is generated from opt-in configuration and route annotations:
 
-When it is added, the clean design is:
-
-- `@ApiRoute(security: ['bearerAuth'])` on protected handlers.
-- `security: []` to make one operation public.
-- `null` to inherit a global default.
-- A scheme registry supplied by annotations or adapter configuration.
-- `axle gen` validates that every referenced scheme exists.
-- Runtime middleware is still implemented by the application/adapter, not generated by axle.
-
-Do not add security to `axle.yaml` until axle can truthfully represent and validate it.
+- Schemes live under `security.schemes` in `axle.yaml` (`http`, `apiKey`,
+  `oauth2`, `openIdConnect`).
+- `security.default` applies a global requirement.
+- `@ApiRoute(security: [ApiSecurityRequirement([...])])` opts a route in.
+- `security: []` makes one operation public; `null` inherits the default.
+- `axle gen` validates every referenced scheme exists.
+- Runtime middleware is still implemented by the application or adapter. axle
+  never generates or enforces auth.
 
 ---
 
@@ -533,7 +537,7 @@ Do not add security to `axle.yaml` until axle can truthfully represent and valid
 
 ### Phase 0 — Config cleanup and example relocation (done — 2026-10-22)
 
-- [x] Remove `servers`, `docs`, `swagger_ui_url`, `tags`, and `security` from `axle.yaml` handling.
+- [x] Remove `docs` and `swagger_ui_url` from `axle.yaml` handling; `servers`, `tags`, and `security` were re-added later as opt-in metadata.
 - [x] Rework config to `openapi`, `info`, `generate.scan`, `generate.output`.
 - [x] Remove duplicated `init` flags.
 - [x] Make `gen` read only YAML.
@@ -551,13 +555,13 @@ Do not add security to `axle.yaml` until axle can truthfully represent and valid
 
 ### Phase 1 — Contract quality
 
-- Source locations in generator errors.
-- Strict schema validation and duplicate detection.
-- OpenAPI 3.1 structural validation in CI (Redocly or a JSON Schema validator).
-- Better examples/defaults support.
-- Response headers, cookie parameters, and multiple media types.
-- `oneOf`/discriminator design for sealed classes.
-- Contract diff tooling or CI artifact comparison.
+- [x] Strict schema validation and duplicate detection.
+- [x] Better examples/defaults support.
+- [x] Response headers, cookie parameters, and multiple media types.
+- [x] Explicit `oneOf`/discriminator schemas.
+- [ ] Source locations in generator errors.
+- [ ] OpenAPI 3.1 structural validation in CI (Redocly or a JSON Schema validator).
+- [ ] Contract diff tooling or CI artifact comparison.
 
 **Exit criteria:** generated spec validates against OpenAPI 3.1; errors point to the offending Dart symbol; schema coverage is documented.
 
@@ -623,19 +627,21 @@ verified in the Relic 2.0 static handler before implementation.
 The adapter requires Serverpod 4.x, which uses Relic 2.x. `axle_relic` moved
 from Relic 1.2.0 to 2.0.0-rc.2 so the workspace resolves one Relic major.
 
-### Phase 3 — Security metadata
+### Phase 3 — Security metadata (done)
 
-- Scheme definition API.
-- Route-level security annotations.
-- Global default security.
-- Validation against defined schemes.
-- Example middleware remains application-owned.
+- [x] Scheme definition API in `axle.yaml`.
+- [x] Route-level security annotations.
+- [x] Global default security.
+- [x] Validation against defined schemes.
+- [x] Documentation and tests; example middleware remains application-owned.
 
-**Exit criteria:** security refs validate; documentation matches an actually protected example app.
+**Exit criteria:** security refs validate; documentation matches an actually
+protected example app (metadata only; enforcement stays in middleware).
 
 ### Phase 4 — Distribution
 
-- Publish `axle_core`, `axle_cli`, `axle_relic`, and `axle_shelf`.
+- Publish `axle_core`, `axle_cli`, `axle_relic`, `axle_shelf`, and
+  `axle_serverpod`.
 - [x] Replace publishable-package path dependencies with version constraints.
 - [x] Add repository/homepage/issue-tracker metadata and `.pubignore` files.
 - [x] Add per-package tag-driven pub.dev publishing workflows with OIDC.
@@ -688,8 +694,8 @@ Future:
 | Analyzer API churn | Pin a tested range; support latest stable Dart; keep scanner isolated |
 | Annotation/route drift | Annotations live next to handlers; add contract tests later |
 | YAML drift | Strict schema, unknown-key errors, no duplicated runtime fields |
-| Runtime config drift | Relic owns host/port; axle owns no servers |
-| Security drift | Do not emit security until enforcement exists |
+| Runtime config drift | Servers are opt-in; default Swagger UI uses the current origin |
+| Security drift | Metadata only; enforcement stays application-owned |
 | Path traversal in config | Reject scan/output paths outside project root |
 | Path deps block publishing | Phase 4 replaces path deps with versions |
 | Relic API changes | Keep adapter tiny; test against pinned Relic 2.0.0-rc.2 |
@@ -701,16 +707,16 @@ Future:
 
 ## 15. Open Decisions
 
-1. Should `servers` ever be supported as an optional advanced field for proxied deployments?
-2. Should top-level tag descriptions be added, or are operation tags enough?
-3. When security is added, should schemes be annotations or adapter/config registries?
-4. Should a config schema version be added for future migrations?
-5. Should a future `axle_gen` build_runner mode reuse the CLI’s scanner?
-6. ~~Should `axle_core` expose a small adapter interface?~~ Resolved: `AxleDocs` is the framework-neutral contract.
-7. Should the example be a workspace member or a standalone package with its own lockfile?
-8. Should `axle gen` support multiple specs per package?
+1. Should `allOf`/`anyOf` and automatic sealed-hierarchy inference be added?
+2. Should watch mode, tag filtering, and multiple specs per package be added?
+3. Should a config schema version be added for future migrations?
+4. Should a future `axle_gen` build_runner mode reuse the CLI’s scanner?
+5. ~~Should `axle_core` expose a small adapter interface?~~ Resolved: `AxleDocs` is the framework-neutral contract.
+6. Should the example be a workspace member or a standalone package with its own lockfile?
 
-Current recommendations: no servers, no top-level tags, security later, no build_runner, `AxleDocs` as the stable adapter contract, workspace member for the example, one spec per package.
+Current recommendations: explicit `oneOf` only, one spec per package by
+default, security metadata without enforcement, no build_runner, `AxleDocs` as
+the stable adapter contract.
 
 ---
 
@@ -804,8 +810,9 @@ packages/
 ## 17. Phase 0 Completion Checklist
 
 - [x] Refactor `AxleConfig` to the new `axle.yaml` schema.
-- [x] Remove config support for `servers`, `docs`, `swagger_ui_url`, `tags`, and `security`.
-- [x] Update `OpenApiSpecBuilder` to emit no servers.
+- [x] Remove `docs` and `swagger_ui_url` config support; `servers`, `tags`, and
+  `security` were reintroduced later as opt-in metadata.
+- [x] Keep server output empty by default; `servers` is now opt-in.
 - [x] Derive Swagger UI title from the spec.
 - [x] Remove `init --title/--version/--docs-path/--spec-path`.
 - [x] Keep `init` from reading pubspec after creation.

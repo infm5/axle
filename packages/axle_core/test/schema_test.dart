@@ -117,6 +117,31 @@ void main() {
       );
     });
 
+    test('serializes oneOf discriminators', () {
+      expect(
+        const OpenApiSchema.oneOf(
+          [OpenApiSchema.ref('Cat'), OpenApiSchema.ref('Dog')],
+          discriminator: OpenApiDiscriminator(
+            'kind',
+            mapping: {'cat': 'Cat', 'dog': 'Dog'},
+          ),
+        ).toJson(),
+        {
+          'oneOf': [
+            {r'$ref': '#/components/schemas/Cat'},
+            {r'$ref': '#/components/schemas/Dog'},
+          ],
+          'discriminator': {
+            'propertyName': 'kind',
+            'mapping': {
+              'cat': '#/components/schemas/Cat',
+              'dog': '#/components/schemas/Dog',
+            },
+          },
+        },
+      );
+    });
+
     test('preserves metadata on refs', () {
       expect(
         const OpenApiSchema.ref(

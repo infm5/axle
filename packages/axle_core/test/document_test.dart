@@ -82,6 +82,44 @@ void main() {
       });
     });
 
+    test('serializes tags, terms, and external docs', () {
+      final document = OpenApiDocument(
+        info: const OpenApiInfo(
+          title: 'Documented API',
+          version: '1.0.0',
+          termsOfService: 'https://example.com/terms',
+        ),
+        tags: const [
+          OpenApiTag(
+            name: 'Users',
+            description: 'User operations.',
+            externalDocs: OpenApiExternalDocs(url: 'https://example.com/users'),
+          ),
+        ],
+        externalDocs: const OpenApiExternalDocs(
+          url: 'https://example.com/docs',
+          description: 'Full docs.',
+        ),
+      );
+
+      expect(document.toJson()['info'], {
+        'title': 'Documented API',
+        'version': '1.0.0',
+        'termsOfService': 'https://example.com/terms',
+      });
+      expect(document.toJson()['tags'], [
+        {
+          'name': 'Users',
+          'description': 'User operations.',
+          'externalDocs': {'url': 'https://example.com/users'},
+        },
+      ]);
+      expect(document.toJson()['externalDocs'], {
+        'url': 'https://example.com/docs',
+        'description': 'Full docs.',
+      });
+    });
+
     test('omits empty components and servers', () {
       final document = OpenApiDocument(
         info: const OpenApiInfo(title: 'Empty API', version: '1.0.0'),

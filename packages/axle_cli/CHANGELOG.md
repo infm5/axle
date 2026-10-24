@@ -1,3 +1,14 @@
+## 0.2.0
+
+- Added `security` configuration with HTTP, API key, OAuth2, and OpenID Connect
+  schemes plus default requirements.
+- Added route-level `@ApiRoute(security: ...)` and public overrides.
+- Added response headers, cookie parameters, multiple media types, and multipart
+  body generation.
+- Added parameter and property constraints.
+- Added `oneOf` discriminator generation through `@ApiSchema`.
+- Added global tags, external docs, terms of service, and optional servers.
+
 ## 0.1.0
 
 - Initial release.

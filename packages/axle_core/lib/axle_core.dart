@@ -8,4 +8,5 @@ export 'src/annotations.dart';
 export 'src/docs.dart';
 export 'src/openapi/document.dart';
 export 'src/openapi/schema.dart';
+export 'src/openapi/security.dart';
 export 'src/swagger_ui.dart';

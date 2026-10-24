@@ -4,6 +4,7 @@ library;
 import 'dart:convert';
 
 import 'schema.dart';
+import 'security.dart';
 
 /// An OpenAPI 3.1 document.
 class OpenApiDocument {
@@ -14,6 +15,9 @@ class OpenApiDocument {
     this.servers = const [],
     this.paths = const {},
     this.components = const OpenApiComponents(),
+    this.security = const [],
+    this.tags = const [],
+    this.externalDocs,
   });
 
   /// The OpenAPI specification version.
@@ -28,8 +32,21 @@ class OpenApiDocument {
   /// The operations keyed by path.
   final Map<String, OpenApiPathItem> paths;
 
-  /// Reusable component schemas.
+  /// Reusable components.
   final OpenApiComponents components;
+
+  /// Security requirements applied to all operations by default.
+  ///
+  /// An empty list omits the document-level `security` member. Individual
+  /// operations can override it, including with an empty list for a public
+  /// operation.
+  final List<OpenApiSecurityRequirement> security;
+
+  /// Global tag metadata.
+  final List<OpenApiTag> tags;
+
+  /// Link to external documentation for the API.
+  final OpenApiExternalDocs? externalDocs;
 
   /// Serializes the document to a JSON-compatible map.
   Map<String, Object?> toJson() {
@@ -38,11 +55,16 @@ class OpenApiDocument {
       'info': info.toJson(),
       if (servers.isNotEmpty)
         'servers': [for (final server in servers) server.toJson()],
+      if (tags.isNotEmpty) 'tags': [for (final tag in tags) tag.toJson()],
+      if (externalDocs != null) 'externalDocs': externalDocs!.toJson(),
+      if (security.isNotEmpty)
+        'security': [for (final requirement in security) requirement.toJson()],
       'paths': {
         for (final entry in paths.entries) entry.key: entry.value.toJson(),
       },
     };
-    if (components.schemas.isNotEmpty) {
+    if (components.schemas.isNotEmpty ||
+        components.securitySchemes.isNotEmpty) {
       result['components'] = components.toJson();
     }
     return result;
@@ -56,6 +78,46 @@ class OpenApiDocument {
   }
 }
 
+/// A link to external documentation.
+class OpenApiExternalDocs {
+  /// Creates an external docs link.
+  const OpenApiExternalDocs({required this.url, this.description});
+
+  /// The documentation URL.
+  final String url;
+
+  /// A description of the link.
+  final String? description;
+
+  /// Serializes the link to a JSON-compatible map.
+  Map<String, Object?> toJson() => {
+    'url': url,
+    if (description != null) 'description': description,
+  };
+}
+
+/// Metadata for a documentation tag.
+class OpenApiTag {
+  /// Creates a tag.
+  const OpenApiTag({required this.name, this.description, this.externalDocs});
+
+  /// The tag name.
+  final String name;
+
+  /// A description of the tag.
+  final String? description;
+
+  /// A link to external documentation for the tag.
+  final OpenApiExternalDocs? externalDocs;
+
+  /// Serializes the tag to a JSON-compatible map.
+  Map<String, Object?> toJson() => {
+    'name': name,
+    if (description != null) 'description': description,
+    if (externalDocs != null) 'externalDocs': externalDocs!.toJson(),
+  };
+}
+
 /// Metadata about the API.
 class OpenApiInfo {
   /// Creates API metadata.
@@ -63,6 +125,7 @@ class OpenApiInfo {
     required this.title,
     required this.version,
     this.description,
+    this.termsOfService,
     this.contact,
     this.license,
   });
@@ -76,6 +139,9 @@ class OpenApiInfo {
   /// A description of the API.
   final String? description;
 
+  /// A URL to the API's terms of service.
+  final String? termsOfService;
+
   /// Contact information for the API.
   final OpenApiContact? contact;
 
@@ -87,6 +153,7 @@ class OpenApiInfo {
     'title': title,
     'version': version,
     if (description != null) 'description': description,
+    if (termsOfService != null) 'termsOfService': termsOfService,
     if (contact != null) 'contact': contact!.toJson(),
     if (license != null) 'license': license!.toJson(),
   };
@@ -157,16 +224,28 @@ class OpenApiServer {
 /// Reusable components referenced by the document.
 class OpenApiComponents {
   /// Creates a component collection.
-  const OpenApiComponents({this.schemas = const {}});
+  const OpenApiComponents({
+    this.schemas = const {},
+    this.securitySchemes = const {},
+  });
 
   /// The reusable schemas keyed by component name.
   final Map<String, OpenApiSchema> schemas;
 
+  /// The reusable security schemes keyed by scheme name.
+  final Map<String, OpenApiSecurityScheme> securitySchemes;
+
   /// Serializes the components to a JSON-compatible map.
   Map<String, Object?> toJson() => {
-    'schemas': {
-      for (final entry in schemas.entries) entry.key: entry.value.toJson(),
-    },
+    if (schemas.isNotEmpty)
+      'schemas': {
+        for (final entry in schemas.entries) entry.key: entry.value.toJson(),
+      },
+    if (securitySchemes.isNotEmpty)
+      'securitySchemes': {
+        for (final entry in securitySchemes.entries)
+          entry.key: entry.value.toJson(),
+      },
   };
 }
 
@@ -216,6 +295,7 @@ class OpenApiOperation {
     this.deprecated = false,
     this.parameters = const [],
     this.requestBody,
+    this.security,
   });
 
   /// A stable identifier for the operation.
@@ -239,6 +319,12 @@ class OpenApiOperation {
   /// The request body accepted by the operation.
   final OpenApiRequestBody? requestBody;
 
+  /// Security requirements overriding the document default.
+  ///
+  /// `null` inherits the document default; an empty list makes the operation
+  /// public.
+  final List<OpenApiSecurityRequirement>? security;
+
   /// The responses keyed by status code.
   final Map<String, OpenApiResponse> responses;
 
@@ -251,6 +337,8 @@ class OpenApiOperation {
     if (parameters.isNotEmpty)
       'parameters': [for (final parameter in parameters) parameter.toJson()],
     if (requestBody != null) 'requestBody': requestBody!.toJson(),
+    if (security != null)
+      'security': [for (final requirement in security!) requirement.toJson()],
     'responses': {
       for (final entry in responses.entries) entry.key: entry.value.toJson(),
     },
@@ -322,15 +410,19 @@ class OpenApiParameter {
 /// The request body of an operation.
 class OpenApiRequestBody {
   /// Creates a request body.
+  ///
+  /// Provide either [content] or the [schema] convenience field. The latter
+  /// emits a single `application/json` media type.
   const OpenApiRequestBody({
-    required this.schema,
+    this.schema,
     this.description,
     this.required = true,
     this.example,
+    this.content = const {},
   });
 
-  /// The body schema.
-  final OpenApiSchema schema;
+  /// The body schema for a single JSON media type.
+  final OpenApiSchema? schema;
 
   /// A description of the body.
   final String? description;
@@ -338,43 +430,123 @@ class OpenApiRequestBody {
   /// Whether the body is required.
   final bool required;
 
-  /// An example body.
+  /// An example body for the single JSON media type.
   final Object? example;
 
+  /// The media types accepted by the operation, keyed by media type.
+  final Map<String, OpenApiMediaType> content;
+
   /// Serializes the body to a JSON-compatible map.
+  Map<String, Object?> toJson() {
+    final mediaTypes =
+        content.isNotEmpty
+            ? content
+            : schema == null
+            ? const <String, OpenApiMediaType>{}
+            : {
+              'application/json': OpenApiMediaType(
+                schema: schema!,
+                example: example,
+              ),
+            };
+    return {
+      if (description != null) 'description': description,
+      'required': required,
+      if (mediaTypes.isNotEmpty)
+        'content': {
+          for (final entry in mediaTypes.entries)
+            entry.key: entry.value.toJson(),
+        },
+    };
+  }
+}
+
+/// One HTTP response header.
+class OpenApiHeader {
+  /// Creates a response header.
+  const OpenApiHeader({
+    required this.schema,
+    this.description,
+    this.required = false,
+    this.deprecated = false,
+  });
+
+  /// The header value schema.
+  final OpenApiSchema schema;
+
+  /// A description of the header.
+  final String? description;
+
+  /// Whether the header is required.
+  final bool required;
+
+  /// Whether the header is deprecated.
+  final bool deprecated;
+
+  /// Serializes the header to a JSON-compatible map.
   Map<String, Object?> toJson() => {
     if (description != null) 'description': description,
-    'required': required,
-    'content': {
-      'application/json':
-          OpenApiMediaType(schema: schema, example: example).toJson(),
-    },
+    if (required) 'required': true,
+    if (deprecated) 'deprecated': true,
+    'schema': schema.toJson(),
   };
 }
 
 /// One response returned by an operation.
 class OpenApiResponse {
   /// Creates a response.
-  const OpenApiResponse({required this.description, this.schema, this.example});
+  ///
+  /// Provide either [content] or the [schema] convenience field. The latter
+  /// emits a single `application/json` media type.
+  const OpenApiResponse({
+    required this.description,
+    this.schema,
+    this.example,
+    this.headers = const {},
+    this.content = const {},
+  });
 
   /// A description of the response.
   final String description;
 
-  /// The response body schema, or `null` when there is no body.
+  /// The response body schema for a single JSON media type.
   final OpenApiSchema? schema;
 
-  /// An example response body.
+  /// An example response body for the single JSON media type.
   final Object? example;
 
+  /// Response headers keyed by header name.
+  final Map<String, OpenApiHeader> headers;
+
+  /// Response media types keyed by media type.
+  final Map<String, OpenApiMediaType> content;
+
   /// Serializes the response to a JSON-compatible map.
-  Map<String, Object?> toJson() => {
-    'description': description,
-    if (schema != null)
-      'content': {
-        'application/json':
-            OpenApiMediaType(schema: schema!, example: example).toJson(),
-      },
-  };
+  Map<String, Object?> toJson() {
+    final mediaTypes =
+        content.isNotEmpty
+            ? content
+            : schema == null
+            ? const <String, OpenApiMediaType>{}
+            : {
+              'application/json': OpenApiMediaType(
+                schema: schema!,
+                example: example,
+              ),
+            };
+    return {
+      'description': description,
+      if (headers.isNotEmpty)
+        'headers': {
+          for (final entry in headers.entries) entry.key: entry.value.toJson(),
+        },
+      if (mediaTypes.isNotEmpty)
+        'content': {
+          for (final entry in mediaTypes.entries)
+            entry.key: entry.value.toJson(),
+        },
+    };
+  }
 }
 
 /// The media type wrapper used for request and response bodies.

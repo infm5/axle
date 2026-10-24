@@ -57,8 +57,10 @@ class ApiRoute {
     this.pathParams = const [],
     this.queryParams = const [],
     this.headerParams = const [],
+    this.cookieParams = const [],
     this.body,
     this.responses = const [],
+    this.security,
     this.ignore = false,
   });
 
@@ -96,6 +98,9 @@ class ApiRoute {
   /// Header parameters accepted by the operation.
   final List<ApiHeaderParam> headerParams;
 
+  /// Cookie parameters accepted by the operation.
+  final List<ApiCookieParam> cookieParams;
+
   /// The request body accepted by the operation.
   final ApiBody? body;
 
@@ -104,6 +109,13 @@ class ApiRoute {
   /// When this list is empty, the generator emits a `200 OK` response without a
   /// body.
   final List<ApiResponse> responses;
+
+  /// Security requirements for the operation.
+  ///
+  /// `null` inherits the document default; an empty list makes the operation
+  /// public. Multiple requirements are alternatives (OR); multiple schemes in
+  /// one requirement must all be satisfied (AND).
+  final List<ApiSecurityRequirement>? security;
 
   /// Whether the generator should ignore this annotation.
   final bool ignore;
@@ -117,6 +129,13 @@ class ApiPathParam {
     required this.type,
     this.description,
     this.example,
+    this.format,
+    this.enumValues = const [],
+    this.minimum,
+    this.maximum,
+    this.minLength,
+    this.maxLength,
+    this.pattern,
   });
 
   /// The parameter name, without braces or a leading colon.
@@ -130,6 +149,27 @@ class ApiPathParam {
 
   /// An example value.
   final Object? example;
+
+  /// The JSON Schema format.
+  final String? format;
+
+  /// The allowed values, when this is an enum.
+  final List<Object?> enumValues;
+
+  /// The inclusive minimum for numeric values.
+  final num? minimum;
+
+  /// The inclusive maximum for numeric values.
+  final num? maximum;
+
+  /// The minimum string length.
+  final int? minLength;
+
+  /// The maximum string length.
+  final int? maxLength;
+
+  /// A regular expression the value must match.
+  final String? pattern;
 }
 
 /// Describes a query parameter.
@@ -142,6 +182,13 @@ class ApiQueryParam {
     this.description,
     this.example,
     this.defaultValue,
+    this.format,
+    this.enumValues = const [],
+    this.minimum,
+    this.maximum,
+    this.minLength,
+    this.maxLength,
+    this.pattern,
   });
 
   /// The parameter name.
@@ -161,6 +208,27 @@ class ApiQueryParam {
 
   /// The default value used when the parameter is omitted.
   final Object? defaultValue;
+
+  /// The JSON Schema format.
+  final String? format;
+
+  /// The allowed values, when this is an enum.
+  final List<Object?> enumValues;
+
+  /// The inclusive minimum for numeric values.
+  final num? minimum;
+
+  /// The inclusive maximum for numeric values.
+  final num? maximum;
+
+  /// The minimum string length.
+  final int? minLength;
+
+  /// The maximum string length.
+  final int? maxLength;
+
+  /// A regular expression the value must match.
+  final String? pattern;
 }
 
 /// Describes a header parameter.
@@ -172,6 +240,13 @@ class ApiHeaderParam {
     this.required = false,
     this.description,
     this.example,
+    this.format,
+    this.enumValues = const [],
+    this.minimum,
+    this.maximum,
+    this.minLength,
+    this.maxLength,
+    this.pattern,
   });
 
   /// The header name.
@@ -188,9 +263,85 @@ class ApiHeaderParam {
 
   /// An example value.
   final Object? example;
+
+  /// The JSON Schema format.
+  final String? format;
+
+  /// The allowed values, when this is an enum.
+  final List<Object?> enumValues;
+
+  /// The inclusive minimum for numeric values.
+  final num? minimum;
+
+  /// The inclusive maximum for numeric values.
+  final num? maximum;
+
+  /// The minimum string length.
+  final int? minLength;
+
+  /// The maximum string length.
+  final int? maxLength;
+
+  /// A regular expression the value must match.
+  final String? pattern;
 }
 
-/// Describes a JSON request body.
+/// Describes a cookie parameter.
+class ApiCookieParam {
+  /// Creates a cookie parameter annotation.
+  const ApiCookieParam(
+    this.name, {
+    required this.type,
+    this.required = false,
+    this.description,
+    this.example,
+    this.format,
+    this.enumValues = const [],
+    this.minimum,
+    this.maximum,
+    this.minLength,
+    this.maxLength,
+    this.pattern,
+  });
+
+  /// The cookie name.
+  final String name;
+
+  /// The Dart type used to build the JSON Schema.
+  final Type type;
+
+  /// Whether the cookie is required.
+  final bool required;
+
+  /// A description of the cookie.
+  final String? description;
+
+  /// An example value.
+  final Object? example;
+
+  /// The JSON Schema format.
+  final String? format;
+
+  /// The allowed values, when this is an enum.
+  final List<Object?> enumValues;
+
+  /// The inclusive minimum for numeric values.
+  final num? minimum;
+
+  /// The inclusive maximum for numeric values.
+  final num? maximum;
+
+  /// The minimum string length.
+  final int? minLength;
+
+  /// The maximum string length.
+  final int? maxLength;
+
+  /// A regular expression the value must match.
+  final String? pattern;
+}
+
+/// Describes a request body.
 class ApiBody {
   /// Creates a request body annotation.
   const ApiBody(
@@ -198,6 +349,7 @@ class ApiBody {
     this.description,
     this.required = true,
     this.example,
+    this.contentTypes = const ['application/json'],
   });
 
   /// The Dart type used to build the JSON Schema.
@@ -211,6 +363,40 @@ class ApiBody {
 
   /// An example value.
   final Object? example;
+
+  /// The media types accepted by the operation.
+  final List<String> contentTypes;
+}
+
+/// Describes one response header.
+class ApiResponseHeader {
+  /// Creates a response header annotation.
+  const ApiResponseHeader(
+    this.name, {
+    required this.type,
+    this.description,
+    this.example,
+    this.required = false,
+    this.deprecated = false,
+  });
+
+  /// The header name.
+  final String name;
+
+  /// The Dart type used to build the JSON Schema.
+  final Type type;
+
+  /// A description of the header.
+  final String? description;
+
+  /// An example value.
+  final Object? example;
+
+  /// Whether the header is required.
+  final bool required;
+
+  /// Whether the header is deprecated.
+  final bool deprecated;
 }
 
 /// Describes one response returned by an operation.
@@ -222,12 +408,16 @@ class ApiResponse {
     this.description = '',
     this.nullable = false,
     this.example,
+    this.headers = const [],
+    this.contentTypes = const ['application/json'],
   });
 
   /// Creates a `200 OK` response.
   const ApiResponse.ok([this.type, this.description = 'OK', this.example])
     : status = 200,
-      nullable = false;
+      nullable = false,
+      headers = const [],
+      contentTypes = const ['application/json'];
 
   /// Creates a `201 Created` response.
   const ApiResponse.created([
@@ -235,14 +425,18 @@ class ApiResponse {
     this.description = 'Created',
     this.example,
   ]) : status = 201,
-       nullable = false;
+       nullable = false,
+       headers = const [],
+       contentTypes = const ['application/json'];
 
   /// Creates a `204 No Content` response.
   const ApiResponse.noContent([this.description = 'No Content'])
     : status = 204,
       type = null,
       nullable = false,
-      example = null;
+      example = null,
+      headers = const [],
+      contentTypes = const ['application/json'];
 
   /// Creates a `400 Bad Request` response.
   const ApiResponse.badRequest([
@@ -250,7 +444,9 @@ class ApiResponse {
     this.description = 'Bad Request',
     this.example,
   ]) : status = 400,
-       nullable = false;
+       nullable = false,
+       headers = const [],
+       contentTypes = const ['application/json'];
 
   /// Creates a `404 Not Found` response.
   const ApiResponse.notFound([
@@ -258,7 +454,9 @@ class ApiResponse {
     this.description = 'Not Found',
     this.example,
   ]) : status = 404,
-       nullable = false;
+       nullable = false,
+       headers = const [],
+       contentTypes = const ['application/json'];
 
   /// Creates a `500 Internal Server Error` response.
   const ApiResponse.internalServerError([
@@ -266,7 +464,9 @@ class ApiResponse {
     this.description = 'Internal Server Error',
     this.example,
   ]) : status = 500,
-       nullable = false;
+       nullable = false,
+       headers = const [],
+       contentTypes = const ['application/json'];
 
   /// The HTTP status code.
   final int status;
@@ -282,6 +482,39 @@ class ApiResponse {
 
   /// An example response body.
   final Object? example;
+
+  /// Response headers.
+  final List<ApiResponseHeader> headers;
+
+  /// The media types produced by the response.
+  final List<String> contentTypes;
+}
+
+/// Describes one security requirement.
+///
+/// Multiple requirements on an operation are alternatives (OR). All schemes in
+/// one requirement must be satisfied (AND).
+class ApiSecurityRequirement {
+  /// Creates a security requirement.
+  const ApiSecurityRequirement(this.schemes, {this.scopes = const {}});
+
+  /// Scheme names that must all be satisfied.
+  final List<String> schemes;
+
+  /// OAuth2 scopes keyed by scheme name.
+  final Map<String, List<String>> scopes;
+}
+
+/// Describes a discriminator for a `oneOf` schema.
+class ApiDiscriminator {
+  /// Creates a discriminator annotation.
+  const ApiDiscriminator(this.propertyName, {this.mapping = const {}});
+
+  /// The property whose value selects the schema.
+  final String propertyName;
+
+  /// Optional values mapped to schema names.
+  final Map<String, String> mapping;
 }
 
 /// Marks a class as an OpenAPI schema.
@@ -291,13 +524,28 @@ class ApiResponse {
 /// references it, or when its schema name or description needs an override.
 class ApiSchema {
   /// Creates a schema annotation.
-  const ApiSchema({this.name, this.description, this.ignore = false});
+  const ApiSchema({
+    this.name,
+    this.description,
+    this.oneOf = const [],
+    this.discriminator,
+    this.ignore = false,
+  });
 
   /// An optional override for the schema name.
   final String? name;
 
   /// An optional description of the schema.
   final String? description;
+
+  /// Concrete types that satisfy this schema.
+  ///
+  /// When non-empty, the generated schema is a `oneOf` over the referenced
+  /// component schemas instead of a component built from this class's fields.
+  final List<Type> oneOf;
+
+  /// The discriminator used with [oneOf].
+  final ApiDiscriminator? discriminator;
 
   /// Whether the generator should skip auto-including the class.
   ///
@@ -313,6 +561,13 @@ class ApiProperty {
     this.description,
     this.example,
     this.required,
+    this.format,
+    this.enumValues = const [],
+    this.minimum,
+    this.maximum,
+    this.minLength,
+    this.maxLength,
+    this.pattern,
     this.ignore = false,
   });
 
@@ -331,6 +586,27 @@ class ApiProperty {
   ///
   /// When omitted, non-nullable fields without a default value are required.
   final bool? required;
+
+  /// The JSON Schema format.
+  final String? format;
+
+  /// The allowed values, when this is an enum.
+  final List<Object?> enumValues;
+
+  /// The inclusive minimum for numeric values.
+  final num? minimum;
+
+  /// The inclusive maximum for numeric values.
+  final num? maximum;
+
+  /// The minimum string length.
+  final int? minLength;
+
+  /// The maximum string length.
+  final int? maxLength;
+
+  /// A regular expression the value must match.
+  final String? pattern;
 
   /// Whether the generator should skip this field.
   final bool ignore;
