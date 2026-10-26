@@ -19,8 +19,8 @@ melos:
       noSelect: true
   scripts:
     analyze:
-      description: Analyze the whole workspace.
-      run: dart analyze
+      description: Analyze every package. The standalone examples under examples/ are analyzed by their own check-*-example scripts after `dart pub get`.
+      run: dart analyze packages
     test:
       description: Run tests in every package that has a test directory.
       exec:

@@ -1,7 +1,7 @@
 name: axle_serverpod
 description: Serverpod integration for axle. Serves a generated OpenAPI spec and Swagger UI from the Serverpod web server.
-version: 0.2.0
-homepage: https://github.com/infm5/axle
+version: 0.3.0
+homepage: https://axle.infms.dev
 repository: https://github.com/infm5/axle
 issue_tracker: https://github.com/infm5/axle/issues
 topics:

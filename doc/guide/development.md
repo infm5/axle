@@ -11,7 +11,7 @@ dart run melos run check   # analyze + test + format + spec freshness
 
 | Script | Command | Scope |
 | --- | --- | --- |
-| `analyze` | `dart analyze` | Whole workspace |
+| `analyze` | `dart analyze packages` | Every package; examples under `examples/` run their own `check-*-example` script |
 | `test` | `dart test` per package with a `test/` dir | `axle_core`, `axle_cli`, `axle_relic`, `axle_shelf`, `axle_serverpod` |
 | `format` | `dart format --output=none --set-exit-if-changed .` | Whole workspace |
 | `gen-check` | `axle gen --check` | Relic example |
