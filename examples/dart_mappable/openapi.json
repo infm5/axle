@@ -1,0 +1,209 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "dart_mappable Accounts API",
+    "version": "0.2.0",
+    "description": "A Shelf API whose models use dart_mappable.",
+    "license": {
+      "name": "MIT",
+      "identifier": "MIT"
+    }
+  },
+  "paths": {
+    "/accounts": {
+      "post": {
+        "summary": "Create an account",
+        "operationId": "createAccount",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewAccount"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/accounts/{id}": {
+      "get": {
+        "summary": "Get an account",
+        "operationId": "getAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Account": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/Address",
+            "description": "The billing address."
+          },
+          "display_name": {
+            "type": "string",
+            "description": "The name shown to other people."
+          },
+          "id": {
+            "type": "integer",
+            "description": "The account id."
+          },
+          "joined": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the account was created. `@MappableField(key:)` beats `caseStyle`, so this is `joined` rather than `created_at`."
+          },
+          "nickname": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An optional short name."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING_REVIEW",
+              "ACTIVE",
+              "BLOCKED"
+            ],
+            "description": "The lifecycle state."
+          }
+        },
+        "required": [
+          "address",
+          "display_name",
+          "id",
+          "joined",
+          "status"
+        ]
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+          "postal_code": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 10,
+            "description": "The postal code."
+          },
+          "region": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The state or region, when it applies."
+          },
+          "street_line": {
+            "type": "string",
+            "description": "The street and number."
+          }
+        },
+        "required": [
+          "postal_code",
+          "street_line"
+        ]
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "A stable error code."
+          },
+          "message": {
+            "type": "string",
+            "description": "A human-readable message."
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "NewAccount": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/Address",
+            "description": "The billing address."
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "The name shown to other people."
+          },
+          "nickname": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An optional short name."
+          }
+        },
+        "required": [
+          "address",
+          "display_name"
+        ]
+      }
+    }
+  }
+}

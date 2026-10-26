@@ -16,6 +16,9 @@ dev_dependencies:
   axle_cli: ^0.2.0
 ```
 
+`axle_cli` needs a recent `analyzer`. It resolves next to `json_serializable` and
+`dart_mappable_builder`, but not next to freezed 3.x; activate it globally there
+(below).
 Invoke locally:
 
 ```sh
@@ -24,13 +27,16 @@ dart run axle_cli:axle gen
 dart run axle_cli:axle gen --check
 ```
 
-Or activate globally:
+Or activate globally. This is required next to freezed 3.x, and it analyzes your
+project with your project's own packages:
 
 ```sh
-dart pub global activate axle_cli   # once published
+dart pub global activate axle_cli
 axle init
 axle gen
 ```
+
+Run `dart pub global activate axle_cli` again after upgrading axle.
 
 ## API
 
@@ -55,16 +61,24 @@ axle gen [--project <dir>] [--config axle.yaml] [--check] [--verbose]
 ```
 
 - Reads only `axle.yaml` and Dart source — never `pubspec.yaml`.
-- Discovers top-level `@ApiRoute` handlers in the configured `scan` paths.
+- Discovers `@ApiRoute` annotations in the configured `scan` paths: on
+  top-level functions, and from 0.3.0 also on methods and top-level variables.
 - Infers DTO schemas from referenced classes: nested classes, enums,
   `List`/`Set`, `Map<String, T>`, nullability, `DateTime`, `Uri`, `Duration`,
-  `BigInt`, and typed-data bytes.
+  `BigInt`, and typed-data bytes. From 0.3.0 it also handles generic classes,
+  sealed classes, and the annotations of `json_serializable`, `freezed`, and
+  `dart_mappable`.
 - Emits security schemes/requirements, response headers, cookie parameters,
-  multiple media types, multipart bodies, parameter constraints, and explicit
-  `oneOf` discriminators.
+  multiple media types, multipart bodies, parameter constraints, and `oneOf`,
+  `anyOf`, and `allOf` schemas. From 0.3.0 it also emits `default` and range
+  responses, parameter `style` and `explode`, and named examples.
 - Validates security references against `security.schemes` in `axle.yaml`.
-- Prints warnings to stderr; exit codes follow sysexits (usage `64`, data
-  `65`, software `70`, config `78`).
+- Reports every source problem in one run as `file:line:column: error: …`
+  (before 0.3.0 it stopped at the first). Warnings print to stderr and do not
+  change the exit code. Exit codes follow sysexits (usage `64`, data `65`,
+  software `70`, config `78`).
+- Reads generated parts (`*.freezed.dart`, `*.mapper.dart`), so run your code
+  generator first. Files that `analysis_options.yaml` excludes are fine.
 - `--check` fails when any artifact is stale — use it in CI instead of
   regenerating.
 
@@ -111,6 +125,5 @@ file I/O. See the [axle.yaml reference](/reference/axle-yaml) for every rule.
 - No route binding, request validation, or auth enforcement — it emits a
   contract, not behavior.
 - One spec per package; no build_runner mode.
-- Unsupported type shapes (generics, records, function types, automatic sealed
-  hierarchy inference) are errors or documented omissions, not guesses — see
-  [Annotations & DTO Mapping](/reference/annotations).
+- Unsupported type shapes (records, function types) are errors or documented
+  omissions, not guesses. See [Annotations and DTO Mapping](/reference/annotations).

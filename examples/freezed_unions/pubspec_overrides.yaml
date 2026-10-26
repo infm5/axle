@@ -1,0 +1,7 @@
+# Keep the example on the local packages while developing the repository.
+# Delete this file to use the published packages.
+dependency_overrides:
+  axle_core:
+    path: ../../packages/axle_core
+  axle_shelf:
+    path: ../../packages/axle_shelf

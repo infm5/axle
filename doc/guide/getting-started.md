@@ -6,7 +6,8 @@ and Serverpod use the same flow with their own dependency and mount call — see
 
 ## Prerequisites
 
-- Dart SDK (the workspace requires `>=3.12.2 <4.0.0`).
+- A Dart SDK new enough for your packages: `axle_cli` needs 3.11, `axle_shelf`
+  needs 3.9, `axle_relic` needs 3.10, and `axle_serverpod` needs 3.12.
 - A Dart server project using `relic`, `shelf`, or Serverpod 4.x.
 
 ## 1. Add the dependencies
@@ -76,7 +77,7 @@ the JSON path, so the two can never drift in configuration. See the
 
 ## 3. Annotate a handler and its DTOs
 
-Annotations live next to top-level handler functions and DTO classes:
+Annotations live next to handler functions and DTO classes:
 
 ```dart
 import 'package:axle_relic/axle_relic.dart';
@@ -104,16 +105,23 @@ Future<Result> getUser(Request request) async { ... }
 
 Notes:
 
-- Handlers must be **top-level functions**; closures cannot carry metadata.
+- Annotate **top-level functions**. From 0.3.0 you can also annotate **methods**
+  of classes and mixins, and **top-level variables** that hold a closure. A
+  closure passed inline to a router cannot carry metadata. Methods default to
+  the operation id `Class_method`.
 - Parameters carry a Dart `Type` literal (e.g. `type: int`), never a nullable
   type literal — nullability is expressed per-field or per-response.
 - Schemas are inferred from DTO classes referenced by `ApiBody` / `ApiResponse`.
   `@ApiSchema` is optional and only force-includes unreferenced models or
   overrides metadata.
+- If your models use `json_serializable`, `freezed`, or `dart_mappable`, axle
+  reads their annotations. See [Models and serialization](/models/), and note
+  that `axle_cli` must be installed globally next to freezed 3.x.
 
-Serverpod handlers are `handleCall` methods on `Route` subclasses, so annotate a
-top-level function and delegate from the route. Keep the annotation path and
-the `addRoute` path in one constant:
+Serverpod handlers are `handleCall` methods on `Route` subclasses. With 0.2.0,
+annotate a top-level function and delegate from the route; from 0.3.0 you can
+annotate `handleCall` itself. Keep the annotation path and the `addRoute` path in
+one constant:
 
 ```dart
 const greetingPath = '/greeting';

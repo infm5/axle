@@ -1,0 +1,99 @@
+openapi: 3.1.0
+info:
+  title: axle Showcase API
+  version: 0.2.0
+  description: |
+    Every route here is real. The handlers parse what the spec says they accept
+    and send what it says they return, so you can try each one from Swagger UI.
+
+    Start with **Media** for content types, **Headers** for conditional requests
+    and rate limits, **Parameters** for how arrays and objects travel in a URL,
+    **Security** for every scheme type, and **Schemas** for unions and generics.
+
+    Demo credentials: API key `demo-key`, bearer token `demo-token`, basic auth
+    `demo` / `demo`.
+  termsOfService: https://example.com/terms
+  contact:
+    name: axle maintainers
+    url: https://github.com/infm5/axle
+    email: hello@example.com
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: http://localhost:8080
+    description: Local, on the default port.
+  - url: http://localhost:9090
+    description: Local, if you started the server with `PORT=9090`.
+tags:
+  - name: Media
+    description: Content types in and out, from JSON and XML to PNG, PDF, and streams.
+    externalDocs:
+      url: https://developer.mozilla.org/docs/Web/HTTP/MIME_types
+      description: MIME types on MDN.
+  - name: Headers
+    description: Conditional requests, caching, rate limits, pagination links, and deprecation.
+  - name: Parameters
+    description: Path, query, header, and cookie parameters, with every serialization style.
+  - name: Security
+    description: One route for every kind of security scheme.
+  - name: Schemas
+    description: Generics, sealed unions, allOf, anyOf, and a model with every type.
+  - name: Responses
+    description: Status codes, ranges, redirects, and problem details.
+externalDocs:
+  url: https://axle.infms.dev
+  description: axle documentation.
+security:
+  schemes:
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Send `demo-key`.
+    apiKeyQuery:
+      type: apiKey
+      in: query
+      name: api_key
+      description: Send `demo-key`.
+    apiKeyCookie:
+      type: apiKey
+      in: cookie
+      name: api_session
+      description: Send `demo-key`.
+    basicAuth:
+      type: http
+      scheme: basic
+      description: User `demo`, password `demo`.
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Send `demo-token`.
+    oauth2:
+      type: oauth2
+      description: Accepts the bearer token `demo-oauth`; scopes are advisory.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.example.com/authorize
+          tokenUrl: https://auth.example.com/token
+          refreshUrl: https://auth.example.com/refresh
+          scopes:
+            items:read: Read items.
+            items:write: Create and change items.
+            admin: Everything.
+        clientCredentials:
+          tokenUrl: https://auth.example.com/token
+          scopes:
+            items:read: Read items.
+    openId:
+      type: openIdConnect
+      openIdConnectUrl: https://accounts.example.com/.well-known/openid-configuration
+      description: Accepts the bearer token `demo-oauth`.
+generate:
+  scan:
+    - lib
+  output:
+    json: openapi.json
+    ui: assets/swagger-ui
+    dart: lib/src/generated/openapi.g.dart

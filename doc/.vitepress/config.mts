@@ -20,6 +20,7 @@ export default defineConfig({
     logo: '/logo.svg',
     nav: [
       { text: 'Guide', link: '/guide/introduction' },
+      { text: 'Models', link: '/models/' },
       { text: 'Packages', link: '/packages/' },
       { text: 'Adapters', link: '/adapters/building-an-adapter' },
       { text: 'Skills', link: '/skills/' },
@@ -32,11 +33,22 @@ export default defineConfig({
           { text: 'Introduction', link: '/guide/introduction' },
           { text: 'Getting Started', link: '/guide/getting-started' },
           { text: 'How It Works', link: '/guide/how-it-works' },
+          { text: 'Keeping Paths in Sync', link: '/guide/keeping-paths-in-sync' },
           { text: 'Design Decisions', link: '/guide/design-decisions' },
+          { text: 'Alternatives', link: '/guide/comparison' },
           { text: 'Examples', link: '/guide/examples' },
           { text: 'Troubleshooting', link: '/guide/troubleshooting' },
           { text: 'Roadmap and Status', link: '/guide/roadmap' },
           { text: 'Development', link: '/guide/development' },
+        ],
+      },
+      {
+        text: 'Models',
+        items: [
+          { text: 'Overview', link: '/models/' },
+          { text: 'json_serializable', link: '/models/json-serializable' },
+          { text: 'freezed', link: '/models/freezed' },
+          { text: 'dart_mappable', link: '/models/dart-mappable' },
         ],
       },
       {

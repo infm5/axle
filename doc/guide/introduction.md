@@ -45,16 +45,26 @@ serialize responses — the server framework owns all runtime behavior.
 Detail: [Packages](/packages/). Architecture: [How It Works](/guide/how-it-works).
 Rationale: [Design Decisions](/guide/design-decisions).
 
-## Scope for v0.2
+## Scope
 
-- Server-side Dart only. Relic, Shelf, and Serverpod adapters; framework-agnostic core.
-- Handlers must be **top-level functions**. Closures cannot carry annotations;
-  methods are not discovered.
-- One spec per package. No build_runner mode.
+- Server-side Dart only. Relic, Shelf, and Serverpod adapters share a
+  framework-agnostic core. A Dart Frog adapter is [planned](/guide/roadmap#later).
+- Annotations go on top-level functions. From 0.3.0 they can also go on methods
+  and on top-level variables that hold a closure. A closure passed inline to a
+  router cannot carry an annotation.
+- Models can be plain classes. From 0.3.0 axle also reads the annotations of
+  `json_serializable`, `freezed`, and `dart_mappable`. See
+  [Models and serialization](/models/).
+- One spec per package. axle itself needs no `build_runner`, though your own
+  model packages might.
 - Security schemes, response headers, cookies, multiple media types, parameter
-  constraints, and explicit `oneOf` discriminators are supported. Runtime
-  enforcement, validation, and route discovery are not.
-- Automatic `allOf`/`anyOf` and sealed-hierarchy inference are deferred.
-- Packages are pre-1.0. This release line targets `0.2.0`; use the published
-  `0.2.x` packages where available, or `path:` dependencies while developing
-  against the repo workspace.
+  constraints, and `oneOf` schemas are supported, with `anyOf` and `allOf` from
+  0.3.0. Runtime enforcement, validation, and route discovery from router calls
+  are not.
+
+## Versions
+
+axle is pre-1.0. The published packages are `0.2.0`; use `^0.2.0`. Features
+marked **0.3.0** in these docs are implemented but not yet released, so use
+`path:` or `git:` dependencies to try them. The [roadmap](/guide/roadmap) lists
+what each version contains.

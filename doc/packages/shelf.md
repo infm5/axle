@@ -83,6 +83,20 @@ router
   `GET` requests under the prefix are served; path traversal and symlinks
   escaping the directory are rejected by `shelf_static`.
 
+### `checkShelfRoutes` — route drift test
+
+Calls every path in the generated spec on a handler and reports the ones nothing
+serves, so a route renamed in the router but not in `@ApiRoute` fails a test
+instead of shipping:
+
+```dart
+final reports = await checkShelfRoutes(router.call, spec: axleOpenApiJson);
+expect(reports.where((report) => !report.isRouted), isEmpty);
+```
+
+Only `GET`, `HEAD`, and `OPTIONS` are called unless you pass `methods:`. See
+[Keeping paths in sync](/guide/keeping-paths-in-sync).
+
 ## Examples
 
 CDN-backed UI inside a pipeline:

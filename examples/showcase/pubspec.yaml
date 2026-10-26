@@ -1,0 +1,19 @@
+name: showcase_example
+description: A tour of what axle can document, with a real server behind every route.
+version: 0.2.0
+publish_to: none
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  axle_shelf: ^0.2.0
+  mime: ^2.0.0
+  shelf: ^1.4.3
+  shelf_router: ^1.1.5
+
+dev_dependencies:
+  axle_cli: ^0.2.0
+  json_schema: ^5.2.0
+  lints: ^6.0.0
+  test: ^1.25.0

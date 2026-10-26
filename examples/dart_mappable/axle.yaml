@@ -1,0 +1,15 @@
+openapi: "3.1.0"
+info:
+  title: "dart_mappable Accounts API"
+  version: "0.2.0"
+  description: "A Shelf API whose models use dart_mappable."
+  license:
+    name: "MIT"
+    identifier: "MIT"
+generate:
+  scan:
+    - "lib"
+  output:
+    json: "openapi.json"
+    ui: "assets/swagger-ui"
+    dart: "lib/src/generated/openapi.g.dart"

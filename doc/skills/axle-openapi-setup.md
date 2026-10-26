@@ -14,7 +14,8 @@ npx skills add infm5/axle --skill axle-openapi-setup
 
 - Installing `axle_core`, `axle_cli`, and the right adapter.
 - Initializing and shaping `axle.yaml`.
-- Modeling DTOs and schemas.
+- Modeling DTOs and schemas, including `json_serializable`, `freezed`, and
+  `dart_mappable` models.
 - Annotating routes, parameters, bodies, responses, headers, cookies, security,
   media types, multipart uploads, and `oneOf`.
 - Generating JSON/YAML/Dart artifacts and local Swagger UI assets.
@@ -28,7 +29,8 @@ Before editing, identify:
 - The server framework: Relic, Shelf, Serverpod 4 web-server routes, or custom.
 - The package name and API version from `pubspec.yaml`.
 - Where HTTP handlers live and whether they are top-level functions.
-- Where request/response DTOs live and whether they use `json_annotation`.
+- Where request/response DTOs live and which model package they use
+  (`json_serializable`, `freezed`, `dart_mappable`, or plain classes).
 - Any existing OpenAPI/Swagger setup, generated specs, or docs assets.
 - Whether the user wants public docs, internal docs, or both.
 
@@ -48,9 +50,14 @@ only need the adapter plus the CLI.
 | Serverpod 4 web routes | `axle_serverpod` | `axle_cli` |
 | Custom adapter | `axle_core` | `axle_cli` |
 
-Use `^0.2.0` unless the project pins a later compatible version. Then run
-`dart pub get`. Full install snippets are in
+Use `^0.2.0` unless the project pins a later compatible version. Steps marked
+**(0.3.0)** need axle 0.3.0, which is not published yet; use a `git:` or `path:`
+dependency for those. Then run `dart pub get`. Full install snippets are in
 [Getting Started](/guide/getting-started).
+
+If the project uses freezed 3.x, `axle_cli` will not resolve as a dev dependency.
+Install it globally instead; see
+[Models and serialization](/models/#installing-axle-next-to-your-code-generator).
 
 ## 3. Initialize and shape `axle.yaml`
 
@@ -97,18 +104,22 @@ Guidance:
 - Non-nullable fields are required unless `required: false` or a default says
   otherwise.
 - Put doc comments on fields so property descriptions are useful.
-- Use `@ApiProperty(name: ...)` or `@JsonKey(name: ...)` for wire names.
+- Use `@ApiProperty(name: ...)` or `@JsonKey(name: ...)` for wire names. **(0.3.0)**
+  axle also reads `fieldRename`, `caseStyle`, converters, and freezed models; see
+  [Models and serialization](/models/).
 - `Uint8List`/`ByteData` default to `string`/`byte`; use
   `@ApiProperty(format: 'binary')` for multipart file parts.
-- Declare polymorphic responses explicitly with
-  `@ApiSchema(oneOf: [...], discriminator: ...)`.
+- Declare polymorphic responses with `@ApiSchema(oneOf: [...], discriminator:
+  ...)`. **(0.3.0)** Sealed classes become `oneOf` automatically, and `allOf` and
+  `anyOf` are available.
 
 Full rules: [Annotations & DTO Mapping](/reference/annotations).
 
 ## 5. Annotate routes
 
-Annotations must be on top-level functions. For Serverpod, annotate a
-top-level delegate and call it from `Route.handleCall`.
+Annotations go on top-level functions. **(0.3.0)** They can also go on methods
+and on top-level variables that hold a closure. For Serverpod with 0.2.0,
+annotate a top-level delegate and call it from `Route.handleCall`.
 
 ```dart
 @ApiRoute(

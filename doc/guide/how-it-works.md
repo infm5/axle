@@ -4,29 +4,36 @@
 
 ![axle generation pipeline](/architecture.svg)
 
-**Annotate.** Route facts live in `@ApiRoute` on top-level handler functions.
-Type facts live in DTO classes referenced by `ApiBody` / `ApiResponse`.
+**Annotate.** Route facts live in `@ApiRoute` on handler functions (and, from
+0.3.0, on methods and top-level variables). Type facts live in DTO classes
+referenced by `ApiBody` / `ApiResponse`.
 `axle.yaml` owns only global contract identity (`openapi`, `info`) and
 compiler settings (`generate`).
 
 **Scan.** `axle gen` resolves every `generate.scan` path with
-`package:analyzer`, finds `@ApiRoute` annotations on top-level functions, and
-evaluates their constant arguments — methods, paths, parameter lists, `Type`
-literals. Requires `dart pub get` first; without resolved dependencies the
-analyzer cannot start.
+`package:analyzer`, finds `@ApiRoute` annotations, and evaluates their constant
+arguments: methods, paths, parameter lists, `Type` literals. It requires
+`dart pub get` first, because without resolved dependencies the analyzer cannot
+start. If your models use a code generator, run it before `axle gen` so the
+generated parts exist.
 
 **Build operations.** Each annotation becomes one OpenAPI operation. The builder
 rejects duplicates (route + method, operationId, response status), unused path
-parameters, empty paths, wildcard routes, and invalid status codes. An empty
+parameters, empty paths, wildcard routes, invalid status codes, parameter styles
+that do not fit their location, and `example` combined with `examples`. An empty
 `responses` list emits `200 OK` with no body.
 
 **Infer schemas.** Each referenced `Type` is resolved through the schema
 registry: primitives map to JSON Schema types, collections recurse into
-`items` / `additionalProperties`, enums become string enums, classes become
-`$ref` component schemas with their public instance fields as properties.
-Unsupported shapes (generics, records, function types, sealed hierarchies)
-throw with the offending symbol named. Referenced classes are always emitted;
-`@ApiSchema` only force-includes unreferenced models or overrides metadata.
+`items` / `additionalProperties`, enums become string enums, and classes become
+`$ref` component schemas with their public instance fields as properties. The
+registry also applies what your serialization package says about the wire
+format: renames, defaults, converters, and freezed or `dart_mappable` models (see
+[Models and serialization](/models/)). Generic classes get one schema per
+instantiation, and sealed classes become `oneOf`. Unsupported shapes (records,
+function types) throw with the offending symbol named. Referenced classes are
+always emitted; `@ApiSchema` only force-includes unreferenced models or
+overrides metadata.
 
 **Emit.** One deterministic run writes the JSON spec (pretty, trailing
 newline), the YAML equivalent, the Swagger UI asset directory, and a
@@ -89,8 +96,10 @@ Adapter mapping:
 
 ## Failure model
 
-Generator failures are `AxleException` with a sysexits code, message on
-`stderr`:
+Generator failures are `AxleException`s with a sysexits code, written to
+`stderr`. Source errors carry a position and print as
+`file:line:column: error: message`. One run reports every source error it finds,
+and the first error's code becomes the exit code:
 
 | Code | Meaning | Typical cause |
 | --- | --- | --- |
@@ -100,6 +109,8 @@ Generator failures are `AxleException` with a sysexits code, message on
 | `70` | Software | Unexpected internal error |
 | `78` | Config | Missing/malformed `axle.yaml`, unknown keys, paths outside the project root |
 
+Warnings print as `axle: warning: …` and never change the exit code.
+
 Full catalog: [Troubleshooting](/guide/troubleshooting).
 
 ## What stays out
@@ -108,5 +119,6 @@ Full catalog: [Troubleshooting](/guide/troubleshooting).
 - Runtime request/response validation and serialization.
 - Authentication or authorization enforcement. Security metadata is generated,
   but middleware remains application-owned.
-- Class/method endpoint discovery. The generator documents top-level
-  functions; broader shapes are a future core feature.
+- Route discovery from router calls. The generator reads annotations on
+  functions, methods, and top-level variables; it does not inspect
+  `app.get('/x', ...)` calls.

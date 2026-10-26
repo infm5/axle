@@ -132,9 +132,9 @@ absolute path in deployments if needed.
 
 ## Documenting Serverpod REST routes
 
-`axle gen` discovers annotations on top-level functions. Serverpod REST
-handlers are `handleCall` methods on `Route` subclasses, so annotate a
-top-level function and delegate from the route:
+Serverpod REST handlers are `handleCall` methods on `Route` subclasses. With
+`axle` 0.2.0, `axle gen` reads annotations on top-level functions only, so
+annotate a top-level function and delegate from the route:
 
 ```dart
 const getTodoPath = '/todos/:id';
@@ -160,8 +160,12 @@ class TodoRoute extends Route {
 pod.webServer.addRoute(TodoRoute(), getTodoPath);
 ```
 
-Derive the annotation path and the `addRoute` path from one constant. The
-generator cannot see the router, so two independent path strings can drift.
+From 0.3.0 you can annotate `handleCall` itself and skip the delegate; the
+operation id then defaults to `TodoRoute_handleCall`, so set `operationId`
+yourself for a nicer name.
+
+Either way, derive the annotation path and the `addRoute` path from one constant.
+The generator cannot see the router, so two independent path strings can drift.
 
 ## Examples
 

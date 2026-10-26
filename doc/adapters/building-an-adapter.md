@@ -160,5 +160,6 @@ has the highest floor. Do not force every adapter to the CLI's SDK requirement.
 - Runtime request/response validation.
 - Serialization.
 - Authentication or authorization.
-- Class/method endpoint discovery. The current generator documents top-level
-  functions; broader endpoint shapes are a future core feature.
+- Route discovery from router calls. The generator reads annotations on
+  functions, methods, and top-level variables; it does not inspect
+  `app.get('/x', ...)` calls.

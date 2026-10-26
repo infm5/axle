@@ -1,0 +1,3141 @@
+openapi: "3.1.0"
+info:
+  title: "axle Showcase API"
+  version: "0.2.0"
+  description: "Every route here is real. The handlers parse what the spec says they accept\nand send what it says they return, so you can try each one from Swagger UI.\n\nStart with **Media** for content types, **Headers** for conditional requests\nand rate limits, **Parameters** for how arrays and objects travel in a URL,\n**Security** for every scheme type, and **Schemas** for unions and generics.\n\nDemo credentials: API key `demo-key`, bearer token `demo-token`, basic auth\n`demo` / `demo`.\n"
+  termsOfService: "https://example.com/terms"
+  contact:
+    name: "axle maintainers"
+    url: "https://github.com/infm5/axle"
+    email: "hello@example.com"
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: "http://localhost:8080"
+    description: "Local, on the default port."
+  - url: "http://localhost:9090"
+    description: "Local, if you started the server with `PORT=9090`."
+tags:
+  - name: Media
+    description: "Content types in and out, from JSON and XML to PNG, PDF, and streams."
+    externalDocs:
+      url: "https://developer.mozilla.org/docs/Web/HTTP/MIME_types"
+      description: "MIME types on MDN."
+  - name: Headers
+    description: "Conditional requests, caching, rate limits, pagination links, and deprecation."
+  - name: Parameters
+    description: "Path, query, header, and cookie parameters, with every serialization style."
+  - name: Security
+    description: "One route for every kind of security scheme."
+  - name: Schemas
+    description: "Generics, sealed unions, allOf, anyOf, and a model with every type."
+  - name: Responses
+    description: "Status codes, ranges, redirects, and problem details."
+externalDocs:
+  url: "https://axle.infms.dev"
+  description: "axle documentation."
+paths:
+  "/headers/cache/{id}":
+    get:
+      tags:
+        - Headers
+      summary: "Conditional GET with ETag and Last-Modified"
+      description: "Repeat the request with `If-None-Match` set to the `ETag`, or with `If-Modified-Since`, and the server answers `304` without a body."
+      operationId: getCached
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 3
+        - name: If-None-Match
+          in: header
+          description: "An `ETag` from an earlier response."
+          required: false
+          schema:
+            type: string
+          example: "\"1-1\""
+        - name: If-Modified-Since
+          in: header
+          description: "An HTTP date from an earlier `Last-Modified`."
+          required: false
+          schema:
+            type: string
+          example: "Thu, 01 Jan 2026 00:00:00 GMT"
+      responses:
+        "200":
+          description: "The item."
+          headers:
+            ETag:
+              description: "Identifies this version of the item."
+              schema:
+                type: string
+              example: "\"1-1\""
+            Last-Modified:
+              description: "When the item last changed, as an HTTP date."
+              schema:
+                type: string
+              example: "Thu, 01 Jan 2026 00:00:00 GMT"
+            Cache-Control:
+              description: "Caches may store this response for a minute."
+              schema:
+                type: string
+              example: "private, max-age=60, must-revalidate"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Item"
+        "304":
+          description: "The cached copy is still current."
+          headers:
+            ETag:
+              description: "Identifies this version of the item."
+              schema:
+                type: string
+              example: "\"1-1\""
+            Cache-Control:
+              description: "Caches may store this response for a minute."
+              schema:
+                type: string
+              example: "private, max-age=60, must-revalidate"
+        "404":
+          description: "No such item."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+    put:
+      tags:
+        - Headers
+      summary: "Update only if nobody else changed it"
+      description: "`If-Match` is required. Send the `ETag` you last read: a stale value gives `412`, and no value gives `428`."
+      operationId: putCached
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 3
+        - name: If-Match
+          in: header
+          description: "The `ETag` of the version you are replacing."
+          required: true
+          schema:
+            type: string
+          example: "\"1-1\""
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/Item"
+            examples:
+              rename:
+                value:
+                  id: 1
+                  name: Renamed
+                  price: 150
+      responses:
+        "200":
+          description: "The item after the update."
+          headers:
+            ETag:
+              description: "Identifies this version of the item."
+              schema:
+                type: string
+              example: "\"1-1\""
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Item"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "404":
+          description: "No such item."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "412":
+          description: "`If-Match` does not match the current `ETag`."
+          headers:
+            ETag:
+              description: "Identifies this version of the item."
+              schema:
+                type: string
+              example: "\"1-1\""
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "428":
+          description: "The request must be conditional."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+    head:
+      tags:
+        - Headers
+      summary: "Read the validators without the body"
+      operationId: headCached
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 3
+      responses:
+        "200":
+          description: "The headers a GET would send."
+          headers:
+            ETag:
+              description: "Identifies this version of the item."
+              schema:
+                type: string
+              example: "\"1-1\""
+            Last-Modified:
+              description: "When the item last changed, as an HTTP date."
+              schema:
+                type: string
+              example: "Thu, 01 Jan 2026 00:00:00 GMT"
+        "404":
+          description: "No such item."
+  "/headers/echo":
+    get:
+      tags:
+        - Headers
+      summary: "Request headers of every type"
+      description: "Headers carry strings, so axle describes the type each one parses to: a UUID, a comma-separated list, a bounded integer, a date-time, a boolean, and a list of numbers."
+      operationId: echoHeaders
+      parameters:
+        - name: X-Trace-Id
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+          example: "8b8e3c8e-6c6f-4e1b-9d3e-0d7c1d2b9a10"
+        - name: X-Feature-Flags
+          in: header
+          description: "Comma-separated, because headers use the `simple` style."
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          example:
+            - beta
+            - dark-mode
+        - name: X-Retry-Count
+          in: header
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 10
+        - name: X-Client-Time
+          in: header
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: "2026-10-24T09:00:00Z"
+        - name: X-Debug
+          in: header
+          required: false
+          schema:
+            type: boolean
+          example: true
+        - name: X-Weights
+          in: header
+          description: "Comma-separated numbers; the bounds apply to each one."
+          required: false
+          schema:
+            type: array
+            items:
+              type: number
+              minimum: 0
+              maximum: 1
+          example:
+            - 0.25
+            - 0.75
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/HeaderEcho"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/headers/idempotent":
+    post:
+      tags:
+        - Headers
+      summary: "Create once, however many times you retry"
+      description: "Send the same `Idempotency-Key` with the same body and you get the original response back with `Idempotent-Replayed: true`. The same key with a different body is a `409`."
+      operationId: createIdempotent
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          description: "A unique key per logical request."
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "8b8e3c8e-6c6f-4e1b-9d3e-0d7c1d2b9a10"
+        - name: X-Request-Id
+          in: header
+          description: "Echoed back so you can match logs."
+          required: false
+          schema:
+            type: string
+          example: req-42
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/Item"
+            examples:
+              lamp:
+                value:
+                  id: 1
+                  name: Lamp
+                  price: 2500
+      responses:
+        "201":
+          description: "Created, or replayed from an earlier request."
+          headers:
+            Location:
+              description: "Where the item lives."
+              schema:
+                type: string
+              example: "/headers/cache/1"
+            Idempotent-Replayed:
+              description: "True when this is a replay."
+              schema:
+                type: boolean
+              example: false
+            X-Request-Id:
+              schema:
+                type: string
+              example: req-42
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Item"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "409":
+          description: "The key was used with a different body."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/headers/legacy":
+    get:
+      tags:
+        - Headers
+      summary: "A deprecated route"
+      description: "Use `/headers/pages` instead. The response says when it goes."
+      operationId: legacy
+      responses:
+        "200":
+          description: "Still works, for now."
+          headers:
+            Deprecation:
+              description: "When the route was deprecated (RFC 9745)."
+              schema:
+                type: string
+              example: "@1767225600"
+            Sunset:
+              description: "When the route stops working (RFC 8594)."
+              schema:
+                type: string
+              example: "Wed, 01 Jan 2031 00:00:00 GMT"
+            Link:
+              description: "Where to go instead."
+              schema:
+                type: string
+              example: "</headers/pages>; rel=\"successor-version\""
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Greeting"
+      deprecated: true
+  "/headers/locale":
+    get:
+      tags:
+        - Headers
+      summary: "Pick a language with Accept-Language"
+      operationId: locale
+      parameters:
+        - name: Accept-Language
+          in: header
+          description: "Languages in order of preference, with optional weights."
+          required: false
+          schema:
+            type: string
+          example: "fr-CH, fr;q=0.9, en;q=0.5"
+      responses:
+        "200":
+          description: OK
+          headers:
+            Content-Language:
+              schema:
+                type: string
+              example: fr
+            Vary:
+              schema:
+                type: string
+              example: Accept-Language
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Greeting"
+  "/headers/pages":
+    get:
+      tags:
+        - Headers
+      summary: "Pagination with Link headers"
+      description: "The body is a generic `Page<Item>`. The `Link` header (RFC 8288) points to the first, previous, next, and last pages."
+      operationId: pages
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        "200":
+          description: OK
+          headers:
+            Link:
+              description: "Neighbouring pages."
+              schema:
+                type: string
+              example: "</headers/pages?page=2&size=10>; rel=\"next\", </headers/pages?page=3&size=10>; rel=\"last\""
+            X-Total-Count:
+              description: "Items across all pages."
+              schema:
+                type: integer
+              example: 23
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Page_Item"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/headers/rate-limited":
+    get:
+      tags:
+        - Headers
+      summary: "A route with a rate limit"
+      description: "Five calls per minute. Every response says how many are left; the sixth gets `429` and `Retry-After`."
+      operationId: rateLimited
+      responses:
+        "200":
+          description: "Within the limit."
+          headers:
+            X-RateLimit-Limit:
+              description: "Calls allowed per window."
+              schema:
+                type: integer
+              example: 5
+            X-RateLimit-Remaining:
+              description: "Calls left in this window."
+              schema:
+                type: integer
+              example: 4
+            X-RateLimit-Reset:
+              description: "When the window ends, in Unix seconds."
+              schema:
+                type: integer
+              example: 1767225600
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Greeting"
+        "429":
+          description: "Too many calls."
+          headers:
+            Retry-After:
+              description: "Seconds to wait before trying again."
+              required: true
+              schema:
+                type: integer
+              example: 30
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/media/blob":
+    get:
+      tags:
+        - Media
+      summary: "Download bytes, with range support"
+      description: "Send `Range: bytes=0-99` for a partial response. The blob is 1000 bytes, byte `i` has value `i % 256`."
+      operationId: readBlob
+      parameters:
+        - name: Range
+          in: header
+          description: "A single byte range."
+          required: false
+          schema:
+            type: string
+            pattern: "^bytes=\\d*-\\d*$"
+          example: "bytes=0-99"
+      responses:
+        "200":
+          description: "All 1000 bytes."
+          headers:
+            Accept-Ranges:
+              schema:
+                type: string
+              example: bytes
+          content:
+            "application/octet-stream":
+              schema:
+                type: string
+                format: binary
+        "206":
+          description: "The requested range."
+          headers:
+            Content-Range:
+              required: true
+              schema:
+                type: string
+              example: "bytes 0-99/1000"
+          content:
+            "application/octet-stream":
+              schema:
+                type: string
+                format: binary
+        "416":
+          description: "The range cannot be satisfied."
+          headers:
+            Content-Range:
+              schema:
+                type: string
+              example: "bytes */1000"
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+    put:
+      tags:
+        - Media
+      summary: "Upload raw bytes"
+      description: "The body is the file itself, not JSON and not multipart."
+      operationId: writeBlob
+      requestBody:
+        required: true
+        content:
+          "application/octet-stream":
+            schema:
+              type: string
+              format: binary
+      responses:
+        "201":
+          description: "The bytes were received."
+          headers:
+            Location:
+              schema:
+                type: string
+              example: "/media/blob"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/StoredFile"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "415":
+          description: "The request body media type is not supported."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/media/document.pdf":
+    get:
+      tags:
+        - Media
+      summary: "Download a PDF"
+      operationId: document
+      responses:
+        "200":
+          description: "A one-page PDF."
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              example: "inline; filename=\"showcase.pdf\""
+            Content-Length:
+              schema:
+                type: integer
+              example: 640
+          content:
+            "application/pdf":
+              schema:
+                type: string
+                format: binary
+  "/media/documents/{id}":
+    patch:
+      tags:
+        - Media
+      summary: "Patch a document in either patch format"
+      description: "Send `application/merge-patch+json` with the fields to change, or `application/json-patch+json` with a list of operations. This route supports `replace` and `test` on `/title` and `/completed`."
+      operationId: patchDocument
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+      requestBody:
+        required: true
+        content:
+          "application/merge-patch+json":
+            schema:
+              "$ref": "#/components/schemas/MergePatch"
+            examples:
+              rename:
+                summary: "Change the title"
+                value:
+                  title: Final
+              finish:
+                value:
+                  completed: true
+          "application/json-patch+json":
+            schema:
+              type: array
+              items:
+                "$ref": "#/components/schemas/PatchOperation"
+            examples:
+              rename:
+                value:
+                  - op: replace
+                    path: "/title"
+                    value: Final
+      responses:
+        "200":
+          description: "The document after the patch."
+          headers:
+            ETag:
+              schema:
+                type: string
+              example: "\"2\""
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/DocumentRecord"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "404":
+          description: "No such document."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "415":
+          description: "The request body media type is not supported."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "422":
+          description: "A patch operation is not supported or failed."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/media/greeting":
+    get:
+      tags:
+        - Media
+      summary: "Say hello in the format you ask for"
+      description: "Send `Accept` with any of the media types below. The same greeting is rendered as JSON, XML, YAML, plain text, HTML, or Markdown. `Accept: text/html;q=0.9, application/json;q=0.5` picks HTML."
+      operationId: greeting
+      parameters:
+        - name: name
+          in: query
+          description: "Who to greet."
+          required: false
+          schema:
+            type: string
+            maxLength: 40
+            default: axle
+          example: Ada
+      responses:
+        "200":
+          description: "The greeting."
+          headers:
+            Vary:
+              description: "The request headers the response depends on."
+              schema:
+                type: string
+              example: Accept
+            Content-Language:
+              description: "The language of the greeting."
+              schema:
+                type: string
+              example: en
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Greeting"
+            "application/xml":
+              schema:
+                "$ref": "#/components/schemas/Greeting"
+            "application/yaml":
+              schema:
+                "$ref": "#/components/schemas/Greeting"
+            "text/plain":
+              schema:
+                type: string
+            "text/html":
+              schema:
+                type: string
+            "text/markdown":
+              schema:
+                type: string
+        "406":
+          description: "None of the requested media types can be produced."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "4XX":
+          description: "Any other client error."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "5XX":
+          description: "Any server error."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        default:
+          description: "Anything else."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/media/login":
+    post:
+      tags:
+        - Media
+      summary: "Sign in with a form or JSON"
+      description: "The same `LoginForm` schema is accepted as `application/x-www-form-urlencoded` or `application/json`. Use `demo` and `demo`."
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          "application/x-www-form-urlencoded":
+            schema:
+              "$ref": "#/components/schemas/LoginForm"
+            examples:
+              demo:
+                summary: "The demo account"
+                value:
+                  username: demo
+                  password: demo
+              wrong:
+                summary: "Rejected with 401"
+                value:
+                  username: demo
+                  password: nope
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/LoginForm"
+            examples:
+              demo:
+                summary: "The demo account"
+                value:
+                  username: demo
+                  password: demo
+              wrong:
+                summary: "Rejected with 401"
+                value:
+                  username: demo
+                  password: nope
+      responses:
+        "200":
+          description: "Signed in."
+          headers:
+            Set-Cookie:
+              description: "Also sets the session cookie `api_session`."
+              schema:
+                type: string
+              example: "api_session=demo-key; HttpOnly; SameSite=Strict; Path=/"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Token"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "401":
+          description: "Wrong credentials."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "415":
+          description: "The request body media type is not supported."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/media/logo":
+    get:
+      tags:
+        - Media
+      summary: "An image as PNG or SVG"
+      description: "PNG is binary, so its schema is `string` with `format: binary`. SVG is text. Send `If-None-Match` with the `ETag` to get `304`."
+      operationId: logo
+      parameters:
+        - name: If-None-Match
+          in: header
+          description: "An `ETag` from an earlier response."
+          required: false
+          schema:
+            type: string
+          example: "\"logo-v1\""
+      responses:
+        "200":
+          description: "The image."
+          headers:
+            ETag:
+              schema:
+                type: string
+              example: "\"logo-v1\""
+            Cache-Control:
+              schema:
+                type: string
+              example: "public, max-age=86400, immutable"
+            Vary:
+              description: "The request headers the response depends on."
+              schema:
+                type: string
+              example: Accept
+          content:
+            "image/png":
+              schema:
+                type: string
+                format: binary
+            "image/svg+xml":
+              schema:
+                type: string
+        "304":
+          description: "The cached copy is still current."
+          headers:
+            ETag:
+              schema:
+                type: string
+              example: "\"logo-v1\""
+        "406":
+          description: "None of the requested media types can be produced."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/media/report":
+    get:
+      tags:
+        - Media
+      summary: "A report as JSON, CSV, or TSV"
+      description: "The JSON form has a schema. The CSV and TSV forms are flat text with a header row, sent as an attachment so browsers download them."
+      operationId: report
+      responses:
+        "200":
+          description: "The report."
+          headers:
+            Content-Disposition:
+              description: "Asks the browser to save the file."
+              schema:
+                type: string
+              example: "attachment; filename=\"report.csv\""
+            Vary:
+              description: "The request headers the response depends on."
+              schema:
+                type: string
+              example: Accept
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Report"
+            "text/csv":
+              schema:
+                type: string
+            "text/tab-separated-values":
+              schema:
+                type: string
+        "406":
+          description: "None of the requested media types can be produced."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "4XX":
+          description: "Any other client error."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "5XX":
+          description: "Any server error."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        default:
+          description: "Anything else."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/media/stream/events":
+    get:
+      tags:
+        - Media
+      summary: "Server-sent events"
+      description: "Each event has an `id`, an `event` name, and JSON in `data`. Use `EventSource` in a browser."
+      operationId: streamEvents
+      parameters:
+        - name: count
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 3
+      responses:
+        "200":
+          description: "An endless-style event stream; this one ends after `count`."
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              example: no-cache
+          content:
+            "text/event-stream":
+              schema:
+                type: string
+              example: "id: 1\nevent: tick\ndata: {\"n\":1}\n\n"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/media/stream/ndjson":
+    get:
+      tags:
+        - Media
+      summary: "Stream rows as newline-delimited JSON"
+      description: "Each line is one `ReportRow`. Read the response as it arrives instead of waiting for the end."
+      operationId: streamNdjson
+      parameters:
+        - name: count
+          in: query
+          description: "How many rows to send."
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 5
+      responses:
+        "200":
+          description: "One JSON object per line."
+          headers:
+            Transfer-Encoding:
+              description: "The body is streamed in chunks."
+              schema:
+                type: string
+              example: chunked
+          content:
+            "application/x-ndjson":
+              schema:
+                "$ref": "#/components/schemas/ReportRow"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/media/upload":
+    post:
+      tags:
+        - Media
+      summary: "Upload files with multipart/form-data"
+      description: "Fields: `title` (text), `tags` (text, repeat it), `cover` (one file), `attachments` (any number of files). The server reads every part and reports what arrived."
+      operationId: upload
+      requestBody:
+        required: true
+        content:
+          "multipart/form-data":
+            schema:
+              "$ref": "#/components/schemas/UploadForm"
+      responses:
+        "201":
+          description: "Everything that arrived."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/UploadResult"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "413":
+          description: "The upload is larger than 5 MB."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "415":
+          description: "The request body media type is not supported."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+    options:
+      tags:
+        - Media
+      summary: "What can I send to the upload route?"
+      operationId: uploadOptions
+      responses:
+        "204":
+          description: "The methods and media types the route accepts."
+          headers:
+            Allow:
+              schema:
+                type: string
+              example: "POST, OPTIONS"
+            Accept-Post:
+              schema:
+                type: string
+              example: "multipart/form-data"
+  "/media/vendor":
+    get:
+      tags:
+        - Media
+      summary: "Content negotiation with a vendor media type"
+      description: "Send `Accept: application/vnd.axle.v2+json` for the versioned form, or `application/json` for the default."
+      operationId: vendorGreeting
+      responses:
+        "200":
+          description: OK
+          headers:
+            Vary:
+              description: "The request headers the response depends on."
+              schema:
+                type: string
+              example: Accept
+          content:
+            "application/vnd.axle.v2+json":
+              schema:
+                "$ref": "#/components/schemas/Greeting"
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Greeting"
+        "406":
+          description: "None of the requested media types can be produced."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/parameters/cookies":
+    get:
+      tags:
+        - Parameters
+      summary: "Cookie parameters"
+      description: "Send `Cookie: theme=dark; visits=3; consent=true; session=abc`. Cookies are strings on the wire; axle documents the type each one parses to."
+      operationId: cookieParameters
+      parameters:
+        - name: session
+          in: cookie
+          required: true
+          schema:
+            type: string
+            minLength: 3
+          example: abc
+        - name: theme
+          in: cookie
+          required: false
+          schema:
+            type: string
+            enum:
+              - light
+              - dark
+        - name: visits
+          in: cookie
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+        - name: consent
+          in: cookie
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ParsedParameters"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/parameters/formats":
+    get:
+      tags:
+        - Parameters
+      summary: "Formats, patterns, and bounds"
+      description: "Each parameter has a `format` or `pattern`. Swagger UI shows them as hints; clients can validate before sending."
+      operationId: formats
+      parameters:
+        - name: email
+          in: query
+          required: false
+          schema:
+            type: string
+            format: email
+          example: "a@b.co"
+        - name: id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          example: "8b8e3c8e-6c6f-4e1b-9d3e-0d7c1d2b9a10"
+        - name: website
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uri
+        - name: day
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          example: "2026-10-24"
+        - name: ipv4
+          in: query
+          required: false
+          schema:
+            type: string
+            format: ipv4
+          example: "192.0.2.1"
+        - name: ipv6
+          in: query
+          required: false
+          schema:
+            type: string
+            format: ipv6
+          example: "2001:db8::1"
+        - name: host
+          in: query
+          required: false
+          schema:
+            type: string
+            format: hostname
+        - name: int32
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: -2147483648
+        - name: int64
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: float
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+            minimum: 0
+            maximum: 1
+        - name: zip
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: "^\\d{5}(-\\d{4})?$"
+          example: "94105"
+        - name: rating
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+        - name: code
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 3
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ParsedParameters"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/parameters/label/{ids}":
+    get:
+      tags:
+        - Parameters
+      summary: "Path array, label style"
+      description: "Values start with a dot: `/parameters/label/.1.2.3`."
+      operationId: labelPath
+      parameters:
+        - name: ids
+          in: path
+          required: true
+          style: label
+          schema:
+            type: array
+            items:
+              type: integer
+          example:
+            - 1
+            - 2
+            - 3
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ParsedParameters"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/parameters/matrix/{ids}":
+    get:
+      tags:
+        - Parameters
+      summary: "Path array, matrix style"
+      description: "Values carry their name: `/parameters/matrix/;ids=1,2,3`."
+      operationId: matrixPath
+      parameters:
+        - name: ids
+          in: path
+          required: true
+          style: matrix
+          schema:
+            type: array
+            items:
+              type: integer
+          example:
+            - 1
+            - 2
+            - 3
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ParsedParameters"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/parameters/pair/{kind}/{id}":
+    get:
+      tags:
+        - Parameters
+      summary: "Two path parameters, one an enum"
+      operationId: pairPath
+      parameters:
+        - name: kind
+          in: path
+          description: "What the id refers to."
+          required: true
+          schema:
+            type: string
+            enum:
+              - user
+              - team
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          example: 7
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ParsedParameters"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "404":
+          description: "Unknown kind."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/parameters/search":
+    get:
+      tags:
+        - Parameters
+      summary: "Every way to send arrays and objects in a query string"
+      description: "| Parameter | Style | Looks like |\n| --- | --- | --- |\n| `tags` | `form`, exploded | `tags=a&tags=b` |\n| `ids` | `form`, not exploded | `ids=1,2,3` |\n| `sort` | `pipeDelimited` | `sort=name|price` |\n| `fields` | `spaceDelimited` | `fields=a%20b` |\n| `filter` | `deepObject` | `filter[color]=red&filter[minSize]=2` |\n\nThe response shows what the server parsed."
+      operationId: search
+      parameters:
+        - name: q
+          in: query
+          description: "Free text, with two named examples."
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 80
+          examples:
+            word:
+              summary: "One word"
+              value: lamp
+            phrase:
+              summary: "A phrase"
+              value: "desk lamp"
+        - name: tags
+          in: query
+          description: "Repeat the parameter: `tags=a&tags=b`."
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          example:
+            - red
+            - sale
+        - name: ids
+          in: query
+          description: "One comma-separated value: `ids=1,2,3`."
+          required: false
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+              minimum: 1
+          example:
+            - 1
+            - 2
+            - 3
+        - name: sort
+          in: query
+          description: "Sort keys joined with `|`. A leading `-` sorts descending."
+          required: false
+          style: pipeDelimited
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - name
+                - price
+                - "-name"
+                - "-price"
+          example:
+            - name
+            - "-price"
+        - name: fields
+          in: query
+          description: "Field names joined with a space."
+          required: false
+          style: spaceDelimited
+          schema:
+            type: array
+            items:
+              type: string
+          example:
+            - id
+            - name
+        - name: filter
+          in: query
+          description: "An object spread over `filter[...]` parameters."
+          required: false
+          style: deepObject
+          schema:
+            "$ref": "#/components/schemas/Filter"
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - draft
+              - active
+              - archived
+            default: active
+        - name: colors
+          in: query
+          description: "Enum values repeat like any other array."
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - red
+                - green
+                - blue
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: since
+          in: query
+          description: "Only items changed since this moment."
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: "2026-01-01T00:00:00Z"
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ParsedParameters"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "4XX":
+          description: "Any other client error."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "5XX":
+          description: "Any server error."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        default:
+          description: "Anything else."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/parameters/simple/{ids}":
+    get:
+      tags:
+        - Parameters
+      summary: "Path array, simple style"
+      description: "Values are comma-separated: `/parameters/simple/1,2,3`."
+      operationId: simplePath
+      parameters:
+        - name: ids
+          in: path
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+              minimum: 1
+          example:
+            - 1
+            - 2
+            - 3
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ParsedParameters"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/responses/jobs":
+    post:
+      tags:
+        - Responses
+      summary: "Start a job (202 Accepted)"
+      description: "The work happens later. Poll the `Location` to follow it."
+      operationId: startJob
+      responses:
+        "202":
+          description: "The job was accepted."
+          headers:
+            Location:
+              required: true
+              schema:
+                type: string
+              example: "/responses/jobs/1"
+            Retry-After:
+              description: "Seconds to wait before trying again."
+              schema:
+                type: integer
+              example: 30
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/JobStatus"
+        "4XX":
+          description: "Any other client error."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "5XX":
+          description: "Any server error."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        default:
+          description: "Anything else."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/responses/jobs/{id}":
+    get:
+      tags:
+        - Responses
+      summary: "Poll a job"
+      description: "Each poll moves the job along; the third one finds it done."
+      operationId: getJob
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/JobStatus"
+        "404":
+          description: "No such job."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+    delete:
+      tags:
+        - Responses
+      summary: "Cancel a job (204 No Content)"
+      operationId: cancelJob
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "204":
+          description: "The job was cancelled."
+        "404":
+          description: "No such job."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "409":
+          description: "The job already finished."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/responses/status/{code}":
+    get:
+      tags:
+        - Responses
+      summary: "Get any status code"
+      description: "Try `200`, `201`, `204`, `301`, `302`, `304`, `404`, `418`, `429`, or `503`. Redirects carry a `Location`; `429` and `503` carry `Retry-After`. A code that is not listed here still works and falls under the `2XX`, `3XX`, `4XX`, `5XX`, or `default` response, so the spec describes it."
+      operationId: statusPlayground
+      parameters:
+        - name: code
+          in: path
+          description: "The status code to return."
+          required: true
+          schema:
+            type: integer
+            minimum: 200
+            maximum: 599
+          example: 418
+      responses:
+        "200":
+          description: OK.
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Greeting"
+        "201":
+          description: Created.
+          headers:
+            Location:
+              description: "Where to go next."
+              required: true
+              schema:
+                type: string
+              example: "/responses/status/200"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Greeting"
+        "204":
+          description: "No content: no body at all."
+        "2XX":
+          description: "Any other success."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Greeting"
+        "301":
+          description: "Moved permanently."
+          headers:
+            Location:
+              description: "Where to go next."
+              required: true
+              schema:
+                type: string
+              example: "/responses/status/200"
+        "302":
+          description: Found.
+          headers:
+            Location:
+              description: "Where to go next."
+              required: true
+              schema:
+                type: string
+              example: "/responses/status/200"
+        "304":
+          description: "Not modified: no body."
+        "307":
+          description: "Temporary redirect that keeps the method."
+          headers:
+            Location:
+              description: "Where to go next."
+              required: true
+              schema:
+                type: string
+              example: "/responses/status/200"
+        "308":
+          description: "Permanent redirect that keeps the method."
+          headers:
+            Location:
+              description: "Where to go next."
+              required: true
+              schema:
+                type: string
+              example: "/responses/status/200"
+        "3XX":
+          description: "Any other redirect."
+          headers:
+            Location:
+              description: "Where to go next."
+              required: true
+              schema:
+                type: string
+              example: "/responses/status/200"
+        "404":
+          description: "Not found."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "418":
+          description: "I'm a teapot."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "429":
+          description: "Too many requests."
+          headers:
+            Retry-After:
+              description: "Seconds to wait before trying again."
+              schema:
+                type: integer
+              example: 30
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "4XX":
+          description: "Any other client error."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "503":
+          description: Unavailable.
+          headers:
+            Retry-After:
+              description: "Seconds to wait before trying again."
+              schema:
+                type: integer
+              example: 30
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "5XX":
+          description: "Any server error."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        default:
+          description: "Anything else."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/schemas/contact":
+    get:
+      tags:
+        - Schemas
+      summary: "anyOf: match one schema or several"
+      description: "`?kind=email`, `?kind=phone`, or `?kind=both`. Unlike `oneOf`, a value may satisfy more than one schema, which is why `both` is valid."
+      operationId: contact
+      parameters:
+        - name: kind
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - email
+              - phone
+              - both
+            default: both
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Contact"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/schemas/everything":
+    get:
+      tags:
+        - Schemas
+      summary: "A model with a field of every type"
+      description: "Integers, floats, booleans, strings, dates, durations, URIs, big numbers, bytes, enums, lists, sets, maps, nested and nullable objects, and every constraint keyword."
+      operationId: everything
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/KitchenSink"
+  "/schemas/inventory":
+    get:
+      tags:
+        - Schemas
+      summary: "A map with object values"
+      description: "The keys are SKUs; the schema uses `additionalProperties`."
+      operationId: inventory
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                type: object
+                additionalProperties:
+                  "$ref": "#/components/schemas/Item"
+  "/schemas/org":
+    get:
+      tags:
+        - Schemas
+      summary: "allOf: inheritance, three levels deep"
+      description: "`Manager` is `allOf` `Employee`, which is `allOf` `Person`. Each level lists only the fields it adds."
+      operationId: org
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Manager"
+  "/schemas/payments":
+    post:
+      tags:
+        - Schemas
+      summary: "A oneOf request body"
+      description: "Send a card payment or a bank payment; `method` says which."
+      operationId: pay
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/Payment"
+            examples:
+              card:
+                summary: "Pay by card"
+                value:
+                  method: card
+                  number: "4242424242424242"
+                  expMonth: 12
+                  expYear: 2030
+              bank:
+                summary: "Pay by bank transfer"
+                value:
+                  method: bank
+                  iban: DE89370400440532013000
+      responses:
+        "201":
+          description: Created
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Receipt"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "422":
+          description: "The request was understood but could not be processed."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/schemas/shapes":
+    get:
+      tags:
+        - Schemas
+      summary: "A sealed class becomes oneOf"
+      description: "`Shape` is sealed. axle finds `Circle`, `Rectangle`, and `Polygon` in the same library and emits `oneOf` with the `type` discriminator."
+      operationId: shapes
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Shape"
+  "/schemas/tree":
+    get:
+      tags:
+        - Schemas
+      summary: "A schema that refers to itself"
+      operationId: tree
+      parameters:
+        - name: depth
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 5
+            default: 2
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/TreeNode"
+        "400":
+          description: "The request could not be understood."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/security/api-key":
+    get:
+      tags:
+        - Security
+      summary: "An API key, three ways"
+      description: "Send `demo-key` as the `X-API-Key` header, as `?api_key=`, or as the `api_session` cookie. Listing three requirements means any one is enough."
+      operationId: apiKeyRoute
+      security:
+        - apiKeyHeader: []
+        - apiKeyQuery: []
+        - apiKeyCookie: []
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Whoami"
+        "401":
+          description: "Credentials are missing or wrong."
+          headers:
+            WWW-Authenticate:
+              description: "How to authenticate."
+              schema:
+                type: string
+              example: "Bearer realm=\"showcase\""
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "403":
+          description: "The credentials are valid but not allowed here."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/security/basic":
+    get:
+      tags:
+        - Security
+      summary: "HTTP Basic authentication"
+      operationId: basicRoute
+      security:
+        - basicAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Whoami"
+        "401":
+          description: "Credentials are missing or wrong."
+          headers:
+            WWW-Authenticate:
+              description: "How to authenticate."
+              schema:
+                type: string
+              example: "Bearer realm=\"showcase\""
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "403":
+          description: "The credentials are valid but not allowed here."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/security/bearer":
+    get:
+      tags:
+        - Security
+      summary: "A bearer token"
+      description: "Get one from `POST /media/login`, or send `demo-token`."
+      operationId: bearerRoute
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Whoami"
+        "401":
+          description: "Credentials are missing or wrong."
+          headers:
+            WWW-Authenticate:
+              description: "How to authenticate."
+              schema:
+                type: string
+              example: "Bearer realm=\"showcase\""
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "403":
+          description: "The credentials are valid but not allowed here."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/security/combined":
+    get:
+      tags:
+        - Security
+      summary: "Two schemes at once (AND)"
+      description: "Schemes listed in one requirement must all be satisfied. This route needs the bearer token and the API key."
+      operationId: combinedRoute
+      security:
+        - bearerAuth: []
+          apiKeyHeader: []
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Whoami"
+        "401":
+          description: "Credentials are missing or wrong."
+          headers:
+            WWW-Authenticate:
+              description: "How to authenticate."
+              schema:
+                type: string
+              example: "Bearer realm=\"showcase\""
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "403":
+          description: "The credentials are valid but not allowed here."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/security/either":
+    get:
+      tags:
+        - Security
+      summary: "Bearer token or Basic (OR)"
+      operationId: eitherRoute
+      security:
+        - bearerAuth: []
+        - basicAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Whoami"
+        "401":
+          description: "Credentials are missing or wrong."
+          headers:
+            WWW-Authenticate:
+              description: "How to authenticate."
+              schema:
+                type: string
+              example: "Bearer realm=\"showcase\""
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "403":
+          description: "The credentials are valid but not allowed here."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/security/oauth2/items":
+    get:
+      tags:
+        - Security
+      summary: "OAuth2: read scope"
+      description: "The scope is part of the requirement, so Swagger UI asks for exactly `items:read` when you authorize."
+      operationId: readItems
+      security:
+        - oauth2:
+            - "items:read"
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Whoami"
+        "401":
+          description: "Credentials are missing or wrong."
+          headers:
+            WWW-Authenticate:
+              description: "How to authenticate."
+              schema:
+                type: string
+              example: "Bearer realm=\"showcase\""
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "403":
+          description: "The credentials are valid but not allowed here."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+    post:
+      tags:
+        - Security
+      summary: "OAuth2: write scope"
+      operationId: writeItems
+      security:
+        - oauth2:
+            - "items:write"
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Whoami"
+        "401":
+          description: "Credentials are missing or wrong."
+          headers:
+            WWW-Authenticate:
+              description: "How to authenticate."
+              schema:
+                type: string
+              example: "Bearer realm=\"showcase\""
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "403":
+          description: "The credentials are valid but not allowed here."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/security/oauth2/items/{id}":
+    delete:
+      tags:
+        - Security
+      summary: "OAuth2: several scopes"
+      description: "A requirement can list more than one scope for one scheme."
+      operationId: deleteItem
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      security:
+        - oauth2:
+            - "items:write"
+            - admin
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Whoami"
+        "401":
+          description: "Credentials are missing or wrong."
+          headers:
+            WWW-Authenticate:
+              description: "How to authenticate."
+              schema:
+                type: string
+              example: "Bearer realm=\"showcase\""
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "403":
+          description: "The credentials are valid but not allowed here."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/security/openid":
+    get:
+      tags:
+        - Security
+      summary: "OpenID Connect"
+      description: "Swagger UI reads the discovery document to find the endpoints."
+      operationId: openIdRoute
+      security:
+        - openId: []
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Whoami"
+        "401":
+          description: "Credentials are missing or wrong."
+          headers:
+            WWW-Authenticate:
+              description: "How to authenticate."
+              schema:
+                type: string
+              example: "Bearer realm=\"showcase\""
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "403":
+          description: "The credentials are valid but not allowed here."
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+  "/security/public":
+    get:
+      tags:
+        - Security
+      summary: "No credentials needed"
+      description: "`security: []` makes one route public."
+      operationId: publicRoute
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Whoami"
+components:
+  schemas:
+    BankPayment:
+      type: object
+      properties:
+        iban:
+          type: string
+          pattern: "^[A-Z]{2}\\d{2}[A-Z0-9]{11,30}$"
+          description: "The account."
+          example: DE89370400440532013000
+        method:
+          type: string
+          description: "The discriminator."
+      required:
+        - iban
+        - method
+      description: "Pay by bank transfer."
+    CardPayment:
+      type: object
+      properties:
+        expMonth:
+          type: integer
+          minimum: 1
+          maximum: 12
+          description: "The expiry month."
+        expYear:
+          type: integer
+          minimum: 2026
+          description: "The expiry year."
+        method:
+          type: string
+          description: "The discriminator."
+        number:
+          type: string
+          pattern: "^\\d{13,19}$"
+          description: "The card number."
+          example: "4242424242424242"
+      required:
+        - expMonth
+        - expYear
+        - method
+        - number
+      description: "Pay by card."
+    Circle:
+      type: object
+      properties:
+        radius:
+          type: number
+          minimum: 0
+          description: "The radius."
+        type:
+          type: string
+          description: "The discriminator."
+      required:
+        - radius
+        - type
+    Contact:
+      anyOf:
+        - "$ref": "#/components/schemas/EmailContact"
+        - "$ref": "#/components/schemas/PhoneContact"
+      description: "Reachable by email, by phone, or both."
+    DocumentRecord:
+      type: object
+      properties:
+        completed:
+          type: boolean
+          description: "Whether the document is done."
+        id:
+          type: integer
+          minimum: 1
+          description: "The document id."
+        revision:
+          type: integer
+          minimum: 1
+          description: "Increments with every change."
+        title:
+          type: string
+          description: "The title."
+      required:
+        - completed
+        - id
+        - revision
+        - title
+      description: "A document that supports PATCH."
+    EmailContact:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: "The address."
+          example: "ada@example.com"
+      required:
+        - email
+      description: "An email address."
+    Employee:
+      allOf:
+        - "$ref": "#/components/schemas/Person"
+        - type: object
+          properties:
+            department:
+              type: string
+              description: "Where they work."
+            salary:
+              type:
+                - integer
+                - "null"
+              minimum: 0
+              description: "Their yearly salary in cents, when known."
+          required:
+            - department
+      description: "A person with a job."
+    Filter:
+      type: object
+      properties:
+        color:
+          type:
+            - string
+            - "null"
+          enum:
+            - red
+            - green
+            - blue
+            - null
+          description: "Only items of this color."
+        maxSize:
+          type:
+            - integer
+            - "null"
+          minimum: 0
+          description: "Only items at most this large."
+        minSize:
+          type:
+            - integer
+            - "null"
+          minimum: 0
+          description: "Only items at least this large."
+      description: "A filter sent as a deepObject."
+    Greeting:
+      type: object
+      properties:
+        language:
+          type: string
+          pattern: "^[a-z]{2}$"
+          description: "The language of [message]."
+          example: en
+        message:
+          type: string
+          description: "The greeting."
+          example: "Hello, axle!"
+      required:
+        - language
+        - message
+      description: "A greeting, rendered in the format you ask for."
+    HeaderEcho:
+      type: object
+      properties:
+        clientTime:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: "From `X-Client-Time`."
+        debug:
+          type: boolean
+          description: "From `X-Debug`."
+        featureFlags:
+          type: array
+          items:
+            type: string
+          description: "From `X-Feature-Flags`, split on commas."
+        retryCount:
+          type:
+            - integer
+            - "null"
+          description: "From `X-Retry-Count`."
+        traceId:
+          type:
+            - string
+            - "null"
+          description: "From `X-Trace-Id`."
+        weights:
+          type: array
+          items:
+            type: number
+          description: "From `X-Weights`, split on commas."
+      required:
+        - debug
+        - featureFlags
+        - weights
+      description: "The request headers, parsed into typed values."
+    Item:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          description: "The item id."
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+          description: "The item name."
+        price:
+          type: integer
+          minimum: 0
+          description: "The price in cents."
+        tags:
+          type: array
+          items:
+            type: string
+          description: "Free-form labels. Optional when you send an item."
+      required:
+        - id
+        - name
+        - price
+      description: "A catalog item."
+    JobStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          description: "The job id."
+        progress:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: "How far along it is, from 0 to 1."
+        state:
+          type: string
+          enum:
+            - queued
+            - running
+            - done
+          description: "Where the job is."
+      required:
+        - id
+        - progress
+        - state
+      description: "A background job."
+    KitchenSink:
+      type: object
+      properties:
+        anything:
+          description: "Any JSON value."
+        bigNumber:
+          type: integer
+          format: int64
+          description: "A number too big for most JSON parsers (`int64`)."
+        bytes:
+          type: string
+          format: byte
+          description: "Bytes, as base64 text inside JSON (`byte`)."
+        code:
+          type: string
+          minLength: 3
+          maxLength: 3
+          pattern: "^[A-Z]{3}$"
+          description: "Constrained by length and pattern."
+          example: EUR
+        color:
+          type: string
+          enum:
+            - red
+            - green
+            - blue
+          description: "An enum, as a string with allowed values."
+        counts:
+          type: object
+          additionalProperties:
+            type: integer
+          description: "A map from text to numbers."
+        decimal:
+          type: number
+          description: "A fractional number."
+        elapsed:
+          type: string
+          format: duration
+          description: "A span of time (ISO 8601 `duration`)."
+        email:
+          type: string
+          format: email
+          description: "Constrained by `format`."
+          example: "ada@example.com"
+        flag:
+          type: boolean
+          description: "A boolean."
+        grouped:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              "$ref": "#/components/schemas/Item"
+          description: "A map whose values are lists of objects."
+        integer:
+          type: integer
+          description: "A whole number."
+        item:
+          "$ref": "#/components/schemas/Item"
+          description: "A nested object."
+        link:
+          type: string
+          format: uri
+          description: "A URL (`uri`)."
+        list:
+          type: array
+          items:
+            type: string
+          description: "A list."
+        matrix:
+          type: array
+          items:
+            type: array
+            items:
+              type: integer
+          description: "A list of lists."
+        maybeItem:
+          anyOf:
+            - "$ref": "#/components/schemas/Item"
+            - type: "null"
+          description: "A nested object that may be null."
+        number:
+          type: number
+          description: Either.
+        optional:
+          type:
+            - string
+            - "null"
+          description: "A string that may be null."
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: "Constrained by bounds."
+          example: 4
+        renamed_field:
+          type: string
+          description: "Named differently on the wire than in Dart."
+        text:
+          type: string
+          description: Text.
+        timestamp:
+          type: string
+          format: date-time
+          description: "A moment in time (`date-time`)."
+        unique:
+          type: array
+          items:
+            type: integer
+          description: "A set. It becomes an array; axle does not add `uniqueItems` yet."
+      required:
+        - bigNumber
+        - bytes
+        - code
+        - color
+        - counts
+        - decimal
+        - elapsed
+        - email
+        - flag
+        - grouped
+        - integer
+        - item
+        - link
+        - list
+        - matrix
+        - number
+        - rating
+        - renamed_field
+        - text
+        - timestamp
+        - unique
+      description: "One field of every type axle understands."
+    LoginForm:
+      type: object
+      properties:
+        password:
+          type: string
+          format: password
+          description: "The password."
+          example: demo
+        username:
+          type: string
+          minLength: 1
+          description: "The user name."
+          example: demo
+      required:
+        - password
+        - username
+      description: "Credentials, as a form or as JSON."
+    Manager:
+      allOf:
+        - "$ref": "#/components/schemas/Employee"
+        - type: object
+          properties:
+            reports:
+              type: array
+              items:
+                "$ref": "#/components/schemas/Employee"
+              description: "The people they manage."
+          required:
+            - reports
+      description: "An employee who manages others."
+    MergePatch:
+      type: object
+      properties:
+        completed:
+          type:
+            - boolean
+            - "null"
+          description: "The new completion state."
+        title:
+          type:
+            - string
+            - "null"
+          minLength: 1
+          description: "The new title."
+      description: "A JSON Merge Patch: only the fields to change."
+    Page_Item:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Item"
+          description: "The items on this page."
+        page:
+          type: integer
+          minimum: 1
+          description: "The page number, from 1."
+        size:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: "The requested page size."
+        total:
+          type: integer
+          minimum: 0
+          description: "The number of items across all pages."
+      required:
+        - items
+        - page
+        - size
+        - total
+      description: "One page of results."
+    ParsedParameters:
+      type: object
+      properties:
+        route:
+          type: string
+          description: "The route that parsed them."
+        values:
+          type: object
+          additionalProperties: {}
+          description: "Every parameter and its parsed value."
+      required:
+        - route
+        - values
+      description: "The parameters, as the server understood them."
+    PatchOperation:
+      type: object
+      properties:
+        op:
+          type: string
+          enum:
+            - add
+            - remove
+            - replace
+            - move
+            - copy
+            - test
+          description: "The operation."
+        path:
+          type: string
+          pattern: "^(/[^/]*)*$"
+          description: "A JSON Pointer to the target."
+          example: "/title"
+        value:
+          description: "The value, for `add`, `replace`, and `test`."
+      required:
+        - op
+        - path
+      description: "One step of a JSON Patch."
+    Payment:
+      oneOf:
+        - "$ref": "#/components/schemas/CardPayment"
+        - "$ref": "#/components/schemas/BankPayment"
+      discriminator:
+        propertyName: method
+        mapping:
+          card: "#/components/schemas/CardPayment"
+          bank: "#/components/schemas/BankPayment"
+      description: "How to pay."
+    Person:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          description: "The id."
+        name:
+          type: string
+          description: "The name."
+      required:
+        - id
+        - name
+      description: "A person."
+    PhoneContact:
+      type: object
+      properties:
+        phone:
+          type: string
+          pattern: "^\\+[1-9]\\d{6,14}$"
+          description: "The number, in E.164 form."
+          example: "+14155550123"
+      required:
+        - phone
+      description: "A phone number."
+    Point:
+      type: object
+      properties:
+        x:
+          type: number
+          description: "Horizontal position."
+        "y":
+          type: number
+          description: "Vertical position."
+      required:
+        - x
+        - "y"
+      description: "A point on a plane."
+    Polygon:
+      type: object
+      properties:
+        points:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Point"
+          description: "The corners, at least three."
+        type:
+          type: string
+          description: "The discriminator."
+      required:
+        - points
+        - type
+    Problem:
+      type: object
+      properties:
+        detail:
+          type:
+            - string
+            - "null"
+          description: "An explanation specific to this occurrence."
+        instance:
+          type:
+            - string
+            - "null"
+          format: uri-reference
+          description: "A URI that identifies this occurrence."
+        status:
+          type: integer
+          minimum: 100
+          maximum: 599
+          description: "The HTTP status code."
+        title:
+          type: string
+          description: "A short, human-readable summary."
+        type:
+          type: string
+          format: uri
+          description: "A URI that identifies the problem type."
+          example: "about:blank"
+      required:
+        - status
+        - title
+        - type
+      description: "Problem details as defined by RFC 9457."
+    Receipt:
+      type: object
+      properties:
+        amount:
+          type: integer
+          minimum: 1
+          description: "The amount in cents."
+        id:
+          type: string
+          description: "The receipt id."
+        method:
+          type: string
+          description: "How it was paid."
+      required:
+        - amount
+        - id
+        - method
+      description: "What a payment produced."
+    Rectangle:
+      type: object
+      properties:
+        height:
+          type: number
+          minimum: 0
+          description: "The height."
+        type:
+          type: string
+          description: "The discriminator."
+        width:
+          type: number
+          minimum: 0
+          description: "The width."
+      required:
+        - height
+        - type
+        - width
+    Report:
+      type: object
+      properties:
+        generatedAt:
+          type: string
+          format: date-time
+          description: "When the report was generated."
+        rows:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ReportRow"
+          description: "The report rows."
+        title:
+          type: string
+          description: "The report title."
+      required:
+        - generatedAt
+        - rows
+        - title
+      description: "A report with a few rows."
+    ReportRow:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          description: "The row number."
+        name:
+          type: string
+          description: "The row label."
+        score:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: "A score between 0 and 1."
+      required:
+        - id
+        - name
+        - score
+      description: "One row of a report."
+    Shape:
+      oneOf:
+        - "$ref": "#/components/schemas/Circle"
+        - "$ref": "#/components/schemas/Polygon"
+        - "$ref": "#/components/schemas/Rectangle"
+      discriminator:
+        propertyName: type
+        mapping:
+          circle: "#/components/schemas/Circle"
+          rectangle: "#/components/schemas/Rectangle"
+          polygon: "#/components/schemas/Polygon"
+      description: "A shape. The `type` property says which one."
+    StoredFile:
+      type: object
+      properties:
+        checksum:
+          type: integer
+          description: "An additive checksum of the bytes."
+        contentType:
+          type:
+            - string
+            - "null"
+          description: "The media type the client sent."
+        field:
+          type: string
+          description: "The form field it arrived in."
+        filename:
+          type:
+            - string
+            - "null"
+          description: "The file name the client sent."
+        size:
+          type: integer
+          minimum: 0
+          description: "The size in bytes."
+      required:
+        - checksum
+        - field
+        - size
+      description: "A file the server received."
+    Token:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: "The access token."
+          example: demo-token
+        expiresIn:
+          type: integer
+          minimum: 1
+          description: "Seconds until the token expires."
+        tokenType:
+          type: string
+          description: "The token type."
+      required:
+        - accessToken
+        - expiresIn
+        - tokenType
+      description: "An access token."
+    TreeNode:
+      type: object
+      properties:
+        children:
+          type: array
+          items:
+            "$ref": "#/components/schemas/TreeNode"
+          description: "The child nodes."
+        label:
+          type: string
+          description: "The label."
+      required:
+        - children
+        - label
+      description: "A tree node. Children are tree nodes."
+    UploadForm:
+      type: object
+      properties:
+        attachments:
+          type: array
+          items:
+            type: string
+            format: binary
+          description: "Any number of attachments. `format: binary` applies to each file."
+        cover:
+          type: string
+          format: binary
+          description: "A single cover image."
+        tags:
+          type: array
+          items:
+            type: string
+          description: "Labels, repeated as `tags=a&tags=b`."
+        title:
+          type: string
+          minLength: 1
+          maxLength: 80
+          description: "A title for the upload."
+      required:
+        - attachments
+        - cover
+        - tags
+        - title
+      description: "A multipart upload: fields plus files."
+    UploadResult:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            "$ref": "#/components/schemas/StoredFile"
+          description: "Every file that arrived."
+        tags:
+          type: array
+          items:
+            type: string
+          description: "The tags that arrived."
+        title:
+          type: string
+          description: "The title field."
+      required:
+        - files
+        - tags
+        - title
+      description: "What the server made of an upload."
+    Whoami:
+      type: object
+      properties:
+        scheme:
+          type: string
+          description: "The security scheme that matched."
+          example: bearerAuth
+        scopes:
+          type: array
+          items:
+            type: string
+          description: "The scopes the credentials carry, for OAuth2 and OpenID Connect."
+        subject:
+          type: string
+          description: "Who the credentials belong to."
+      required:
+        - scheme
+        - scopes
+        - subject
+      description: "The caller, as the server identified them."
+  securitySchemes:
+    apiKeyCookie:
+      type: apiKey
+      description: "Send `demo-key`."
+      name: api_session
+      in: cookie
+    apiKeyHeader:
+      type: apiKey
+      description: "Send `demo-key`."
+      name: X-API-Key
+      in: header
+    apiKeyQuery:
+      type: apiKey
+      description: "Send `demo-key`."
+      name: api_key
+      in: query
+    basicAuth:
+      type: http
+      description: "User `demo`, password `demo`."
+      scheme: basic
+    bearerAuth:
+      type: http
+      description: "Send `demo-token`."
+      scheme: bearer
+      bearerFormat: JWT
+    oauth2:
+      type: oauth2
+      description: "Accepts the bearer token `demo-oauth`; scopes are advisory."
+      flows:
+        clientCredentials:
+          tokenUrl: "https://auth.example.com/token"
+          scopes:
+            "items:read": "Read items."
+        authorizationCode:
+          authorizationUrl: "https://auth.example.com/authorize"
+          tokenUrl: "https://auth.example.com/token"
+          refreshUrl: "https://auth.example.com/refresh"
+          scopes:
+            "items:read": "Read items."
+            "items:write": "Create and change items."
+            admin: Everything.
+    openId:
+      type: openIdConnect
+      description: "Accepts the bearer token `demo-oauth`."
+      openIdConnectUrl: "https://accounts.example.com/.well-known/openid-configuration"

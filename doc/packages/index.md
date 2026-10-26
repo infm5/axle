@@ -50,10 +50,17 @@ example.
 ## Versioning
 
 All five packages are versioned independently but currently share `0.2.0`.
-Adapters depend on a compatible `axle_core` range (e.g. `^0.2.0`) — core is the
+Adapters depend on a compatible `axle_core` range (e.g. `^0.2.0`). Core is the
 stable contract, and adapters must never force users to match the CLI version.
-Dart floors are intentionally split: core supports Dart 3.7+, while the
-analyzer-based CLI has the highest floor.
+Dart floors are intentionally split, so an adapter does not inherit the CLI's:
+
+| Package | Minimum Dart |
+| --- | --- |
+| `axle_core` | 3.7 |
+| `axle_shelf` | 3.9 |
+| `axle_relic` | 3.10 |
+| `axle_cli` | 3.11 |
+| `axle_serverpod` | 3.12 |
 
 ## Which Packages Does an App Need?
 
@@ -64,3 +71,7 @@ analyzer-based CLI has the highest floor.
   served on the Serverpod web server port.
 - **Another framework:** `axle_core` (runtime) + `axle_cli` (dev) + your own
   adapter built on `AxleDocs`. See [Building an Adapter](/adapters/building-an-adapter).
+
+If the app uses freezed 3.x, install `axle_cli` globally instead of as a dev
+dependency; see
+[Models and serialization](/models/#installing-axle-next-to-your-code-generator).

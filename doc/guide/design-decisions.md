@@ -1,14 +1,15 @@
 # Design Decisions
 
-Locked decisions from the v0.1 design pass, with rationale. These constrain
-core, CLI, and adapter work — changes here require updating all three.
+Decisions from the 0.1 design pass and the changes made to them since, with
+rationale. These constrain core, CLI, and adapter work, so changing one means
+updating all three.
 
 ## Decisions
 
 | Decision | Choice | Rationale |
 | --- | --- | --- |
 | Generation model | CLI + static analysis | AOT-safe; no runtime registry; predictable CI artifact. |
-| Annotation location | Top-level handler functions and DTO classes | The analyzer resolves them reliably; closures cannot carry metadata. |
+| Annotation location | Top-level functions and DTO classes; from 0.3.0 also methods and top-level variables | The analyzer resolves declarations reliably; a closure passed inline to a router cannot carry metadata. |
 | Type mapping | Annotations carry `Type` literals plus nullable/optional flags | `UserDto?` is not valid Dart as a type literal. |
 | Output | `openapi.json` + `openapi.yaml` + Swagger UI assets + Dart `const` | Tooling artifacts, self-hosted docs, AOT-safe serving. |
 | Framework order | Relic, Shelf, then Serverpod | Concrete adapters validate the design before generalizing. |
@@ -16,6 +17,9 @@ core, CLI, and adapter work — changes here require updating all three.
 | Swagger UI | Core HTML helper + adapter routes | Shared across adapters. |
 | Example tests | None | The example is an integration demo; `gen --check` is the verification. |
 | Security | Metadata only | Describe schemes and requirements; enforcement stays application-owned. |
+| Model packages | Read their annotations; never run their code (0.3.0) | The spec must follow the wire format without importing user code, which would break AOT and static analysis. |
+| Sealed classes | `oneOf` of the subtypes; discriminator opt-in, with a warning when missing (0.3.0) | Dart already declares the closed set, so listing it again would only drift. |
+| `allOf` and `anyOf` | Explicit in `@ApiSchema` (0.3.0) | Inheritance does not say whether a subtype extends or merely reuses a base. |
 
 ## Why not build_runner
 
@@ -23,6 +27,9 @@ core, CLI, and adapter work — changes here require updating all three.
 - Adds `build.yaml`, generator lifecycle, and analyzer/`source_gen` version coupling.
 - The CLI scans the same source and produces all artifacts.
 - A future build_runner mode can reuse the analyzer layer if demand appears.
+- The coupling is real. freezed 3.x pins an older `analyzer` than `axle_cli`, so
+  freezed projects install the CLI globally. See
+  [Models and serialization](/models/#installing-axle-next-to-your-code-generator).
 
 ## Why not a runtime registry
 

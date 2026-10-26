@@ -25,10 +25,11 @@ import 'package:axle_core/axle_core.dart';
 
 ### `@ApiRoute`
 
-One OpenAPI operation per annotation, on **top-level handler functions only**.
-Repeat annotations to document several methods on one handler; each needs a
-unique `operationId` (the default is the function name, so repeats collide
-without explicit IDs).
+One OpenAPI operation per annotation. It goes on a top-level function; from
+0.3.0 it can also go on a method of a class or mixin, or on a top-level variable
+that holds a closure. Repeat annotations to document several methods on one
+handler; each needs a unique `operationId`. The default is the function name
+(`Class_method` for methods), so repeats collide without explicit IDs.
 
 ```dart
 @ApiRoute(
@@ -44,6 +45,7 @@ without explicit IDs).
   headerParams: [ApiHeaderParam('x-trace', type: String, required: false)],
   cookieParams: [ApiCookieParam('session', type: String)],
   body: ApiBody(UserInput, contentTypes: ['application/json']),
+  bodies: [], // more ApiBody entries, one schema per media type
   responses: [
     ApiResponse.ok(UserDto),
     ApiResponse.notFound(),
@@ -70,21 +72,33 @@ to `required: true` and `contentTypes: ['application/json']`.
 
 `ApiResponse` constructors and their defaults:
 
-| Constructor | Status | Default description | Body |
+| Constructor | Key | Default description | Body |
 | --- | --- | --- | --- |
-| `ApiResponse(status:, type:, description:, nullable:, example:, headers:, contentTypes:)` | explicit | `''` | optional `Type` |
+| `ApiResponse(status:, type:, description:, nullable:, example:, examples:, headers:, contentTypes:)` | explicit status | `''` | optional `Type` |
 | `.ok([type, description, example])` | 200 | `'OK'` | optional |
 | `.created(...)` | 201 | `'Created'` | optional |
-| `.noContent([description])` | 204 | `'No Content'` | none — `type` is always null |
+| `.noContent([description])` | 204 | `'No Content'` | none; `type` is always null |
 | `.badRequest(...)` | 400 | `'Bad Request'` | optional |
+| `.unauthorized(...)` <Badge type="tip" text="0.3.0" /> | 401 | `'Unauthorized'` | optional |
+| `.forbidden(...)` <Badge type="tip" text="0.3.0" /> | 403 | `'Forbidden'` | optional |
 | `.notFound(...)` | 404 | `'Not Found'` | optional |
+| `.conflict(...)` <Badge type="tip" text="0.3.0" /> | 409 | `'Conflict'` | optional |
+| `.unprocessableEntity(...)` <Badge type="tip" text="0.3.0" /> | 422 | `'Unprocessable Entity'` | optional |
+| `.tooManyRequests(...)` <Badge type="tip" text="0.3.0" /> | 429 | `'Too Many Requests'` | optional |
 | `.internalServerError(...)` | 500 | `'Internal Server Error'` | optional |
+| `.range(hundreds, {type, description, example, headers, contentTypes, ...})` <Badge type="tip" text="0.3.0" /> | `4XX` for `range(4)` | generic | optional |
+| `.defaultResponse({type, description, example, headers, contentTypes, ...})` <Badge type="tip" text="0.3.0" /> | `default` | `'Unexpected error'` | optional |
+
+Parameter annotations also take `style:`, `explode:`, and `examples:`
+<Badge type="tip" text="0.3.0" />, and `ApiBody` takes `examples:`. Named examples
+use `ApiExample(value)` or `ApiExample.external(url)`. See the
+[reference](/reference/annotations).
 
 ### `@ApiSchema` / `@ApiProperty`
 
 Schemas are inferred from classes referenced by `ApiBody` / `ApiResponse`.
-These annotations override metadata, add constraints, compose `oneOf` schemas,
-or force-include unreferenced models:
+These annotations override metadata, add constraints, compose `oneOf`, `anyOf`,
+and `allOf` schemas, or force-include unreferenced models:
 
 ```dart
 @ApiSchema(name: 'User', description: 'A user returned by the API.')
@@ -112,10 +126,14 @@ class UserDto {
 sealed class PetDto {}
 ```
 
+From 0.3.0, a sealed class becomes a `oneOf` of its subtypes without listing
+them, and `@ApiSchema` also accepts `allOf` and `anyOf`. `@ApiProperty(type:)`
+states a property's JSON type when a converter changes it.
+
 - `@ApiSchema(ignore: true)` skips auto-inclusion, but referenced classes are
   still generated — the document needs them.
-- Property name precedence: `@ApiProperty(name:)` → `@JsonKey(name:)` (read
-  when the project depends on `json_annotation`) → Dart field name.
+- Property names follow your serialization package. The precedence rules are in
+  [Models and serialization](/models/#how-a-property-is-named).
 - Omitted `required` means: non-nullable fields without a default are required.
 
 ### `AxleDocs`
@@ -150,15 +168,33 @@ hashes apply automatically. Adapter entry points do not surface these fields —
 custom-CDN deployments needing SRI should construct `AxleDocs` directly (see
 [Building an Adapter](/adapters/building-an-adapter)).
 
+### `checkDocumentedRoutes`
+
+Framework-neutral support for a route drift test. It lists the operations of a
+generated spec with sample paths (`documentedRoutes`), calls them through a
+function you provide, and reports which ones a handler answered:
+
+```dart
+final reports = await checkDocumentedRoutes(
+  axleOpenApiJson,
+  (method, path) async => RouteResponse(await myServer.status(method, path)),
+);
+```
+
+A route is unrouted when the server answers it exactly as it answers a path
+nobody registered, or with `405`. Only `GET`, `HEAD`, and `OPTIONS` are called
+by default. See [Keeping paths in sync](/guide/keeping-paths-in-sync).
+
 ### Document model and `swaggerUiHtml`
 
 `OpenApiDocument`, `OpenApiInfo`, `OpenApiContact`, `OpenApiLicense`,
 `OpenApiServer`, `OpenApiTag`, `OpenApiExternalDocs`, `OpenApiComponents`,
 `OpenApiPathItem`, `OpenApiOperation`, `OpenApiParameter`,
 `OpenApiRequestBody`, `OpenApiResponse`, `OpenApiHeader`, `OpenApiMediaType`,
+`OpenApiExample`,
 `OpenApiSecurityScheme`, `OpenApiSecurityRequirement`, and `OpenApiSchema`
-(nullable refs, arrays, maps, enums, objects, constraints, `oneOf`
-discriminators) model OpenAPI 3.1 directly.
+(nullable refs, arrays, maps, enums, objects, constraints, and `oneOf`,
+`anyOf`, and `allOf` with discriminators) model OpenAPI 3.1 directly.
 
 ```dart
 swaggerUiHtml({

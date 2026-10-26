@@ -1,0 +1,168 @@
+openapi: "3.1.0"
+info:
+  title: "freezed Orders API"
+  version: "0.2.0"
+  description: "A Shelf API whose models are freezed data classes and unions."
+  license:
+    name: MIT
+    identifier: MIT
+paths:
+  "/orders":
+    post:
+      summary: "Create an order"
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/NewOrder"
+      responses:
+        "201":
+          description: Created
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Order"
+        "422":
+          description: "Unprocessable Entity"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+  "/orders/{id}":
+    get:
+      summary: "Get an order"
+      operationId: getOrder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Order"
+        "404":
+          description: "Not Found"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ApiError"
+components:
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message
+    BankTransferPayment:
+      type: object
+      properties:
+        iban:
+          type: string
+        type:
+          type: string
+          enum:
+            - bank
+      required:
+        - iban
+        - type
+    CardPayment:
+      type: object
+      properties:
+        expMonth:
+          type: integer
+        expYear:
+          type: integer
+        last4:
+          type: string
+        type:
+          type: string
+          enum:
+            - card
+      required:
+        - expMonth
+        - expYear
+        - last4
+        - type
+    NewOrder:
+      type: object
+      properties:
+        item_skus:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        method:
+          "$ref": "#/components/schemas/PaymentMethod"
+        note:
+          type:
+            - string
+            - "null"
+      required:
+        - item_skus
+        - method
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "The order id."
+        item_skus:
+          type: array
+          items:
+            type: string
+          description: "The ordered product SKUs."
+          default: []
+        method:
+          "$ref": "#/components/schemas/PaymentMethod"
+          description: "How the order is paid."
+        note:
+          type:
+            - string
+            - "null"
+          description: "A note from the customer. `@JsonKey(name:)` beats `fieldRename`."
+        status:
+          type: string
+          description: "The order state."
+          default: open
+      required:
+        - id
+        - method
+    PaymentMethod:
+      oneOf:
+        - "$ref": "#/components/schemas/BankTransferPayment"
+        - "$ref": "#/components/schemas/CardPayment"
+        - "$ref": "#/components/schemas/WalletPayment"
+      discriminator:
+        propertyName: type
+        mapping:
+          bank: "#/components/schemas/BankTransferPayment"
+          card: "#/components/schemas/CardPayment"
+          wallet: "#/components/schemas/WalletPayment"
+    WalletPayment:
+      type: object
+      properties:
+        provider:
+          type: string
+        type:
+          type: string
+          enum:
+            - wallet
+        verified:
+          type: boolean
+          default: false
+      required:
+        - provider
+        - type

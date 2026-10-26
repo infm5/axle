@@ -125,7 +125,8 @@ server.
   enforce auth. It serves generated security metadata verbatim but never
   validates credentials. Protect the docs routes with your own middleware if
   needed.
-- Targets Relic 2.0.0-rc.2; will move to stable Relic 2.x once published.
+- Accepts Relic `>=1.2.0 <3.0.0`; tested on Relic 1.2.0 and 2.0.0-rc.2. The
+  example and Serverpod adapter use Relic 2.
 
 ## Other adapters
 
