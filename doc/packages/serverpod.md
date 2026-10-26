@@ -23,11 +23,11 @@ that explorer. Open the configured docs path on the **web server** port instead.
 
 ```yaml
 dependencies:
-  axle_serverpod: ^0.2.0
+  axle_serverpod: ^0.3.0
   serverpod: ^4.0.0
 
 dev_dependencies:
-  axle_cli: ^0.2.0
+  axle_cli: ^0.3.0
 ```
 
 ```dart

@@ -7,11 +7,11 @@ Use the adapter package matching the server. Every adapter re-exports
 
 ```yaml
 dependencies:
-  axle_relic: ^0.2.0
+  axle_relic: ^0.3.0
   relic: ^2.0.0-rc.2
 
 dev_dependencies:
-  axle_cli: ^0.2.0
+  axle_cli: ^0.3.0
 ```
 
 ```dart
@@ -48,11 +48,11 @@ The local asset prefix must not be `/`, the spec path, or the docs path.
 
 ```yaml
 dependencies:
-  axle_shelf: ^0.2.0
+  axle_shelf: ^0.3.0
   shelf: ^1.4.3
 
 dev_dependencies:
-  axle_cli: ^0.2.0
+  axle_cli: ^0.3.0
 ```
 
 ```dart
@@ -102,11 +102,11 @@ router
 
 ```yaml
 dependencies:
-  axle_serverpod: ^0.2.0
+  axle_serverpod: ^0.3.0
   serverpod: ^4.0.0
 
 dev_dependencies:
-  axle_cli: ^0.2.0
+  axle_cli: ^0.3.0
 ```
 
 Serverpod has two HTTP surfaces:
@@ -164,10 +164,10 @@ For any other Dart HTTP framework, depend on core and CLI:
 
 ```yaml
 dependencies:
-  axle_core: ^0.2.0
+  axle_core: ^0.3.0
 
 dev_dependencies:
-  axle_cli: ^0.2.0
+  axle_cli: ^0.3.0
 ```
 
 Then serve the shared `AxleDocs` contract:

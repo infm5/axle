@@ -8,7 +8,7 @@ As a dev dependency (recommended — `dart run` resolves it from your package):
 
 ```yaml
 dev_dependencies:
-  axle_cli: ^0.2.0
+  axle_cli: ^0.3.0
 ```
 
 Or globally, once published:

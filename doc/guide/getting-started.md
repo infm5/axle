@@ -16,11 +16,11 @@ For a Relic project:
 
 ```yaml
 dependencies:
-  axle_relic: ^0.2.0
+  axle_relic: ^0.3.0
   relic: ^2.0.0-rc.2
 
 dev_dependencies:
-  axle_cli: ^0.2.0
+  axle_cli: ^0.3.0
 ```
 
 `axle_relic` re-exports `axle_core`, so Relic apps only need `axle_relic` plus
@@ -29,11 +29,11 @@ the CLI. For Shelf, depend on `axle_shelf` and `shelf` instead. For Serverpod
 
 ```yaml
 dependencies:
-  axle_serverpod: ^0.2.0
+  axle_serverpod: ^0.3.0
   serverpod: ^4.0.0
 
 dev_dependencies:
-  axle_cli: ^0.2.0
+  axle_cli: ^0.3.0
 ```
 
 `axle_serverpod` also re-exports `axle_core`. Its docs routes run on

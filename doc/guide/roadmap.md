@@ -1,7 +1,7 @@
 # Roadmap and Status
 
-axle is pre-1.0. This page lists what each version contains, what is queued for
-the next release, and what is planned after that. The per-package changelogs
+axle is pre-1.0. This page lists what each version contains, and what is planned
+after that. The per-package changelogs
 (`CHANGELOG.md` in each package) are the exact record; this page groups them by
 theme.
 
@@ -9,12 +9,11 @@ theme.
 | --- | --- | --- | --- |
 | [0.1.0](#_0-1-0) | Released | 2026-10-23 | Core, CLI, Relic and Shelf adapters |
 | [0.2.0](#_0-2-0) | Released | 2026-10-24 | Security, richer contracts, Serverpod adapter |
-| [0.3.0](#_0-3-0) | Unreleased | — | Models, generics and unions, response keys, diagnostics |
+| [0.3.0](#_0-3-0) | Released | — | Models, generics and unions, response keys, diagnostics |
 | [Later](#later) | Planned | — | Dart Frog, contract diff, more OpenAPI objects |
 
-All five packages are published at `0.2.0` on pub.dev; `axle_serverpod` started
-at `0.2.0`. The 0.3.0 changes are implemented and appear under *Unreleased* in
-the package changelogs.
+All five packages share the version number; `axle_serverpod` started at `0.2.0`.
+Each package changelog lists the changes in 0.3.0.
 
 ## 0.1.0
 
@@ -80,7 +79,7 @@ A richer contract, security metadata, and a third adapter.
 
 ## 0.3.0
 
-Unreleased. It makes axle read the models people actually write, covers more
+It makes axle read the models people actually write, covers more
 Dart shapes, and reports problems precisely.
 
 **Models and serialization**

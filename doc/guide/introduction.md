@@ -64,7 +64,7 @@ Rationale: [Design Decisions](/guide/design-decisions).
 
 ## Versions
 
-axle is pre-1.0. The published packages are `0.2.0`; use `^0.2.0`. Features
-marked **0.3.0** in these docs are implemented but not yet released, so use
-`path:` or `git:` dependencies to try them. The [roadmap](/guide/roadmap) lists
+axle is pre-1.0. The current packages are `0.3.0`; use `^0.3.0`. Features
+marked **0.3.0** in these docs need that version, so projects on `0.2.x` should
+upgrade first. The [roadmap](/guide/roadmap) lists
 what each version contains.

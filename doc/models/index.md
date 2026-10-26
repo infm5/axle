@@ -11,12 +11,10 @@ your serialization package reads, and the schema follows the wire format.
 | `freezed` (data classes and unions) | [freezed](/models/freezed) |
 | `dart_mappable` | [dart_mappable](/models/dart-mappable) |
 
-::: info Unreleased
-Support for these packages is new in axle 0.3.0, which is not published yet. The
-published `0.2.0` reads `@JsonKey(name:)`, `@JsonKey(defaultValue:)`,
+::: info New in 0.3.0
+Support for these packages is new in axle 0.3.0. Version `0.2.x` reads `@JsonKey(name:)`, `@JsonKey(defaultValue:)`,
 `@JsonKey(includeToJson:, includeFromJson:)`, and `@ApiProperty`, and nothing
-else on this page. To try 0.3.0 now, depend on the repository with `git:` or
-`path:`. See the [roadmap](/guide/roadmap#_0-3-0).
+else on this page. See the [roadmap](/guide/roadmap#_0-3-0).
 :::
 
 Each page has a runnable example in the repository. The examples check that

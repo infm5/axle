@@ -634,7 +634,7 @@ verified in the Relic 2.0 static handler before implementation.
 The adapter requires Serverpod 4.x, which uses Relic 2.x. `axle_relic` moved
 from Relic 1.2.0 to 2.0.0-rc.2 so the workspace resolves one Relic major.
 
-### 0.3.0 (unreleased)
+### 0.3.0
 
 Models, wider Dart shapes, and precise diagnostics. The package changelogs list
 every change; the themes are:

@@ -11,8 +11,8 @@ flow: annotated handlers, inferred DTO schemas, generated specs, generated
   cookie parameters, content negotiation, constraints, `oneOf` discriminators,
   and multipart uploads against real handlers.
 - The **dart_mappable** and **freezed** examples show model packages, and the
-  Shelf example uses `json_serializable`. They use 0.3.0 features, so they run
-  against the local packages in the repository, not the published `0.2.0`.
+  Shelf example uses `json_serializable`. They use 0.3.0 features, and each
+  `pubspec_overrides.yaml` points them at the local packages.
 
 Both Todo examples use the demo API key `demo-key` in the `X-API-Key` header for
 their protected statistics and import routes. That key is example data only;

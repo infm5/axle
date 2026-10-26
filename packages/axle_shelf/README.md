@@ -6,11 +6,11 @@ Shelf integration for axle.
 
 ```yaml
 dependencies:
-  axle_shelf: ^0.2.0
+  axle_shelf: ^0.3.0
   shelf: ^1.4.3
 
 dev_dependencies:
-  axle_cli: ^0.2.0
+  axle_cli: ^0.3.0
 ```
 
 Generate the spec before the first run:

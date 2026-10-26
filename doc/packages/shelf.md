@@ -11,11 +11,11 @@ does not bind routes, validate requests, serialize responses, or enforce auth.
 
 ```yaml
 dependencies:
-  axle_shelf: ^0.2.0
+  axle_shelf: ^0.3.0
   shelf: ^1.4.0
 
 dev_dependencies:
-  axle_cli: ^0.2.0
+  axle_cli: ^0.3.0
 ```
 
 ```dart

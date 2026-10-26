@@ -1,4 +1,4 @@
-## Unreleased
+## 0.3.0
 
 - Generator errors carry `file:line:column` locations, and one run reports every
   problem instead of stopping at the first. A broken DTO used by several routes

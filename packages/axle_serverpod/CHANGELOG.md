@@ -1,4 +1,4 @@
-## Unreleased
+## 0.3.0
 
 - Aligned with `axle_core` 0.3.0. The adapter itself is unchanged.
 - The `axle_core` re-export now includes the new annotations: `allOf` and

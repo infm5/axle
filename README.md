@@ -35,9 +35,9 @@ without `dart:mirrors` or a runtime registry.
 - Relic and Shelf examples now exercise these features against live handlers,
   including real API key checks, content negotiation, and multipart uploads.
 
-## Coming in 0.3
+## What's new in 0.3
 
-Implemented and waiting for a release (see the package changelogs):
+The package changelogs list every change:
 
 - Models: `json_serializable`, `freezed`, and `dart_mappable` annotations,
   custom converters, and `@ApiProperty(type:)`.
@@ -56,8 +56,7 @@ Implemented and waiting for a release (see the package changelogs):
 - A [showcase API](examples/showcase) with 50 operations and 20 media types,
   tested against its own generated spec.
 
-Sections below that describe these features need 0.3; until it is published, try
-them with a `git:` dependency. The
+Sections below that describe these features need 0.3 or later. The
 [roadmap](https://axle.infms.dev/guide/roadmap) lists each version.
 
 ## Packages
@@ -76,11 +75,11 @@ Add the packages to a Relic project:
 
 ```yaml
 dependencies:
-  axle_relic: ^0.2.0
+  axle_relic: ^0.3.0
   relic: ^2.0.0-rc.2
 
 dev_dependencies:
-  axle_cli: ^0.2.0
+  axle_cli: ^0.3.0
 ```
 
 `axle_relic` re-exports `axle_core`'s annotations and document model, so Relic
@@ -90,9 +89,9 @@ dependency for other framework adapters.
 Relic 2.0.0 is currently a release candidate. Pin `^2.0.0-rc.2` until the stable
 2.x release is available, then update to `^2.0.0`.
 
-> This workspace is the `0.2.0` release line. Use the published `0.2.x`
-> packages when available, or `path:` dependencies while developing against the
-> repository workspace.
+> This workspace is the `0.3.0` release line. Use the published `0.3.x`
+> packages, or `path:` dependencies while developing against the repository
+> workspace.
 
 Create the project configuration:
 

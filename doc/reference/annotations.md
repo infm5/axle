@@ -1,8 +1,8 @@
 # Annotations and DTO Mapping Reference
 
 This page lists every annotation axle reads and how Dart types become schemas.
-Items marked <Badge type="tip" text="0.3.0" /> are not in the published `0.2.0`
-packages yet; see the [roadmap](/guide/roadmap#_0-3-0).
+Items marked <Badge type="tip" text="0.3.0" /> need axle 0.3.0 or later and are not in
+`0.2.x`; see the [roadmap](/guide/roadmap#_0-3-0).
 
 ## Naming defaults
 

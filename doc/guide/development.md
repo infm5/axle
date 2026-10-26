@@ -54,7 +54,7 @@ AXLE_UPDATE_GOLDEN=1 dart test test/golden_test.dart
 ## Conventions
 
 - Keep every package at its declared version; adapters constrain
-  `axle_core: ^0.2.0`, never the CLI.
+  `axle_core: ^0.3.0`, never the CLI.
 - Generator errors must name the offending symbol, carry a source location
   (`locationOf(element)`), and use the correct sysexits code
   (`64` / `65` / `70` / `78`).

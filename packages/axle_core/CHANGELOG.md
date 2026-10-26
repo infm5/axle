@@ -1,4 +1,4 @@
-## Unreleased
+## 0.3.0
 
 - Added `allOf` and `anyOf` to `@ApiSchema`, and the matching
   `OpenApiSchema.allOf` / `OpenApiSchema.anyOf` constructors.

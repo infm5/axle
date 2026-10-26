@@ -64,8 +64,8 @@ it indexes public skills installed through the `skills` CLI.
 
 ## Compatibility
 
-Skills target axle `0.2.x`. Steps that need the unreleased 0.3.0 are marked
-**(0.3.0)**. They require a Dart project with the Dart SDK.
+Skills target axle `0.3.x`. Steps that need 0.3.0 are marked **(0.3.0)**, for
+projects still on `0.2.x`. They require a Dart project with the Dart SDK.
 Package installation and Redocly validation need network access. Serverpod
 support covers web-server `Route`s, not API-server `Endpoint` RPC methods.
 

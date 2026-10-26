@@ -144,7 +144,7 @@ Adapters should depend on a compatible `axle_core` range, for example:
 
 ```yaml
 dependencies:
-  axle_core: ^0.2.0
+  axle_core: ^0.3.0
 ```
 
 Core is the stable contract. Adapters must not expose CLI internals or require

@@ -11,7 +11,7 @@ adapter or using the document model standalone:
 
 ```yaml
 dependencies:
-  axle_core: ^0.2.0
+  axle_core: ^0.3.0
 ```
 
 ```dart

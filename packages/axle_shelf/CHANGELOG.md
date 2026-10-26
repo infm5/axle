@@ -1,4 +1,4 @@
-## Unreleased
+## 0.3.0
 
 - Added `checkShelfRoutes`, which calls every path in a generated spec on a
   `Handler` and reports the ones nothing serves. It sends `GET`, `HEAD`, and

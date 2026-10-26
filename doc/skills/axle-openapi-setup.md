@@ -50,9 +50,8 @@ only need the adapter plus the CLI.
 | Serverpod 4 web routes | `axle_serverpod` | `axle_cli` |
 | Custom adapter | `axle_core` | `axle_cli` |
 
-Use `^0.2.0` unless the project pins a later compatible version. Steps marked
-**(0.3.0)** need axle 0.3.0, which is not published yet; use a `git:` or `path:`
-dependency for those. Then run `dart pub get`. Full install snippets are in
+Use `^0.3.0` unless the project pins a later compatible version. Steps marked
+**(0.3.0)** need axle 0.3.0; on `0.2.x`, upgrade first. Then run `dart pub get`. Full install snippets are in
 [Getting Started](/guide/getting-started).
 
 If the project uses freezed 3.x, `axle_cli` will not resolve as a dev dependency.

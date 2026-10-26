@@ -12,11 +12,11 @@ document model, and docs helpers from one import.
 
 ```yaml
 dependencies:
-  axle_relic: ^0.2.0
+  axle_relic: ^0.3.0
   relic: ^2.0.0-rc.2
 
 dev_dependencies:
-  axle_cli: ^0.2.0
+  axle_cli: ^0.3.0
 ```
 
 ```dart

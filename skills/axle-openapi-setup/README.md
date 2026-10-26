@@ -44,7 +44,7 @@ npx skills add infm5/axle --list
 ## Compatibility
 
 Requires a Dart project and the Dart SDK. Package installation and Redocly
-validation need network access. The skill targets axle 0.2.x; Serverpod support
+validation need network access. The skill targets axle 0.3.x; Serverpod support
 is limited to web-server `Route`s, not API-server `Endpoint` RPC methods.
 
 ## Distribution

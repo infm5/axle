@@ -13,7 +13,7 @@ As a dev dependency so `dart run` can resolve it:
 
 ```yaml
 dev_dependencies:
-  axle_cli: ^0.2.0
+  axle_cli: ^0.3.0
 ```
 
 `axle_cli` needs a recent `analyzer`. It resolves next to `json_serializable` and
