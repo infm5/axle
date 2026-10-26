@@ -1,7 +1,9 @@
 # Annotation and DTO Recipes
 
-All handlers must be top-level functions. A class method or closure cannot carry
-the annotation metadata the analyzer scans.
+Annotate top-level functions. With axle 0.3.0 you can also annotate methods of
+classes and mixins, and top-level variables that hold a closure. A closure passed
+inline to a router cannot carry annotation metadata. Methods default to the
+operation id `Class_method`.
 
 ## Route with parameters, body, and errors
 
@@ -243,18 +245,20 @@ class MemberDto {
 - Add examples only when they are realistic and non-sensitive.
 - Use nullable field types for optional data; use `required: false` only when
   the wire contract intentionally differs from Dart nullability.
-- Use `@ApiProperty(name: 'snake_case')` or `@JsonKey(name: ...)` for wire names.
+- Use `@JsonSerializable(fieldRename: FieldRename.snake)` on the class, or
+  `@ApiProperty(name: 'snake_case')` / `@JsonKey(name: ...)` per field, for wire
+  names.
 - Prefer explicit DTOs over returning `Map<String, dynamic>`; maps become
   unconstrained objects.
 
 ## What axle does not infer
 
-- Automatic `allOf`/`anyOf` composition.
-- Sealed-class hierarchies without explicit `@ApiSchema(oneOf: ...)`.
-- Generic class type parameters.
+- Automatic `allOf`/`anyOf` composition (use `@ApiSchema(allOf: ...)`).
+- Generic sealed classes (list the subtypes with `@ApiSchema(oneOf: ...)`).
 - Records and function types.
-- Custom `JsonValue`/`JsonEnum` serialization.
-- Global `json_serializable` field-renaming rules.
+- Non-string `@JsonValue` and project-wide `build.yaml` `json_serializable`
+  options (class-level `fieldRename`, `@JsonEnum` and string `@JsonValue` are
+  read).
 - Arbitrary OpenAPI `x-` extensions.
 
 Model those cases explicitly or keep the schema simple rather than emitting a
@@ -262,7 +266,7 @@ spec that does not match runtime behavior.
 
 ## Common mistakes
 
-- Putting `@ApiRoute` on a method instead of a top-level function.
+- Putting `@ApiRoute` on a closure passed inline to a router.
 - Using a nullable type literal in `type: int?`; parameter types use `int` and
   nullability is expressed by `required`.
 - Forgetting to add a security scheme to `axle.yaml` before referencing it.

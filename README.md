@@ -35,6 +35,31 @@ without `dart:mirrors` or a runtime registry.
 - Relic and Shelf examples now exercise these features against live handlers,
   including real API key checks, content negotiation, and multipart uploads.
 
+## Coming in 0.3
+
+Implemented and waiting for a release (see the package changelogs):
+
+- Models: `json_serializable`, `freezed`, and `dart_mappable` annotations,
+  custom converters, and `@ApiProperty(type:)`.
+- Generic DTOs, sealed classes as `oneOf`, and explicit `allOf` and `anyOf`.
+- `@ApiRoute` on methods and top-level variables, not only top-level functions.
+- `default` and `4XX` responses, more response shortcuts, parameter `style` and
+  `explode`, and named `examples`.
+- Errors with `file:line:column` locations, all reported in one run.
+- `build.yaml` serializer options that change names or fields
+  (`field_rename`, `ignore_unannotated`, `caseStyle`, `enumCaseStyle`) are read,
+  and invalid or conflicting values fail the build.
+- `checkShelfRoutes`, a test that every documented path reaches a handler, so
+  `@ApiRoute` paths and the router cannot drift apart unnoticed.
+- Several media types per status, several request bodies, and raw bytes as
+  `format: binary`, for downloads, uploads, and content negotiation.
+- A [showcase API](examples/showcase) with 50 operations and 20 media types,
+  tested against its own generated spec.
+
+Sections below that describe these features need 0.3; until it is published, try
+them with a `git:` dependency. The
+[roadmap](https://axle.infms.dev/guide/roadmap) lists each version.
+
 ## Packages
 
 | Package | Purpose |
@@ -200,7 +225,15 @@ out of date, which is useful in CI.
   patterns.
 - Security schemes (`http`, `apiKey`, `oauth2`, `openIdConnect`) and per-route
   security requirements.
-- `oneOf` discriminators on schema classes.
+- `oneOf`, `anyOf` and `allOf` schemas, and sealed classes as `oneOf` of their
+  subtypes.
+- Generic DTOs (`Page<UserDto>` becomes the `Page_UserDto` schema).
+- `json_serializable`, `freezed` and `dart_mappable` models, including
+  renaming rules, defaults, and freezed unions.
+- Response keys beyond exact statuses: `default` and ranges such as `4XX`, plus
+  shortcuts for 401, 403, 409, 422, and 429.
+- Parameter `style` and `explode`, and named `examples` on parameters, bodies,
+  and responses.
 - Deterministic path and schema ordering for clean diffs.
 
 ## Security
@@ -243,18 +276,31 @@ alternatives (OR); multiple schemes in one requirement must all be satisfied
 (AND). Swagger UI shows the Authorize flow automatically. The adapter does not
 enforce auth; keep using framework middleware.
 
+## Model packages
+
+axle reads the annotations of `json_serializable`, `freezed`, and
+`dart_mappable`, so the schema follows the wire format. Each has a runnable
+example that checks the spec against the real JSON. See
+[Models and serialization](https://axle.infms.dev/models/).
+
+`axle_cli` resolves next to `json_serializable` and `dart_mappable_builder`.
+freezed 3.x needs an older `analyzer`, so install the CLI globally there:
+`dart pub global activate axle_cli`.
+
 ## Limitations
 
-- Handlers must be top-level functions. Inline closures cannot carry annotations.
+- Annotate top-level functions, top-level variables that hold closures, or
+  methods of classes and mixins. Closures passed inline to a router cannot carry
+  annotations.
 - Annotations describe the API; they do not bind requests, validate input, or
   serialize responses. Use your server framework for that.
 - Wildcard routes (`*`, `/**`) cannot be represented in OpenAPI. Add
   `ignore: true` to their annotation.
-- Relic 2.0.0-rc.2, Shelf, and Serverpod 4.x are the current adapter targets.
+- Relic (1.2.0 and the 2.0.0 release candidate), Shelf, and Serverpod 4.x are
+  the current adapter targets.
   The Dart Frog adapter is not included yet.
-- Automatic `allOf`/`anyOf` inference, polymorphic hierarchies without explicit
-  `@ApiSchema(oneOf: ...)`, and automatic `json_serializable` rename rules are
-  not supported yet.
+- `allOf`/`anyOf` are explicit only (`@ApiSchema(allOf: ...)`); axle does not
+  infer them from inheritance.
 - Security metadata is declarative only. Auth enforcement, token validation, and
   middleware remain application-owned.
 
@@ -269,6 +315,14 @@ implementations.
 directory to an adapter to self-host the UI; no extra asset package is required.
 The CDN URL remains available as an opt-in fallback and is pinned with SRI
 hashes.
+
+## Alternatives
+
+Other packages cover parts of this space: `shelf_open_api_generator` (Shelf,
+`build_runner`), `dart_frog_open_api` and `dart_frog_swagger` (Dart Frog). axle
+targets OpenAPI 3.1 without `build_runner`, but has no Dart Frog adapter yet.
+See the [comparison](https://axle.infms.dev/guide/comparison) for details and
+where the others are ahead.
 
 ## Agent skill
 

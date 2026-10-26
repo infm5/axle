@@ -61,8 +61,10 @@ only need the adapter plus the CLI.
 | Serverpod 4 web routes | `axle_serverpod` | `axle_cli` |
 | Custom adapter | `axle_core` | `axle_cli` |
 
-Use `^0.2.0` unless the project pins a later compatible version. Relic currently
-targets Relic 2.0.0-rc.2. Framework-specific install and mounting snippets are
+Use `^0.2.0` unless the project pins a later compatible version. Steps below
+marked **(0.3.0)** need axle 0.3.0, which is not published yet; use a `git:` or
+`path:` dependency for those, or skip them. Relic currently targets Relic
+2.0.0-rc.2. Framework-specific install and mounting snippets are
 in [references/frameworks.md](references/frameworks.md).
 
 Run `dart pub get` after editing `pubspec.yaml`.
@@ -177,15 +179,34 @@ Guidance:
 - Use `@ApiProperty(name: ...)` or `@JsonKey(name: ...)` for wire names.
 - `Uint8List`/`ByteData` default to base64-style `string`/`byte`; use
   `@ApiProperty(format: 'binary')` for multipart file parts.
-- Use explicit `@ApiSchema(oneOf: [...], discriminator: ...)` for polymorphic
-  responses. axle does not infer sealed hierarchies automatically.
+- **(0.3.0)** Sealed classes become `oneOf` of their subtypes automatically; add
+  `@ApiSchema(discriminator: ...)` so clients can tell them apart. Use explicit
+  `oneOf`, `anyOf`, or `allOf` in `@ApiSchema` for other shapes. With 0.2.0,
+  declare `@ApiSchema(oneOf: [...], discriminator: ...)` explicitly.
+- **(0.3.0)** If the project uses `json_serializable`, `freezed`, or
+  `dart_mappable`, read [references/models.md](references/models.md) first.
+  `axle_cli` does not resolve next to freezed 3.x; install it globally instead.
+- **(0.3.0)** Declare shared errors once and spread them: `responses:
+  [ApiResponse.ok(X), ...protectedErrors]`. Use `ApiResponse.range(4)` and
+  `defaultResponse()`.
+- **(0.3.0)** Use `style:`/`explode:` on array query parameters and `examples:`
+  for named examples.
+- **(0.3.0)** Add a test that every documented path is served:
+  `checkShelfRoutes(router.call, spec: axleOpenApiJson)` for Shelf, or
+  `checkDocumentedRoutes` for any framework. Share each path in one constant too.
+- **(0.3.0)** When one status returns different formats with different schemas
+  (JSON and CSV), declare the status once per media type and axle merges them.
+  Use `ApiRoute(bodies: [...])` for request bodies the same way. Raw bytes
+  (`Uint8List`) under a non-JSON media type are `format: binary`.
 - Avoid exposing internal fields; mark them `@ApiProperty(ignore: true)`.
 
 ## 5. Annotate routes
 
-Annotations must be on top-level functions. Closures and class methods are not
-discovered. For Serverpod, annotate a top-level delegate and call it from the
-`Route.handleCall` method.
+Annotations go on top-level functions. **(0.3.0)** They can also go on methods
+of classes and mixins, and on top-level variables that hold a closure. Closures
+passed inline to a router are never discovered. For Serverpod with 0.2.0,
+annotate a top-level delegate and call it from `Route.handleCall`; with 0.3.0 you
+can annotate `handleCall` itself.
 
 ```dart
 @ApiRoute(
@@ -393,6 +414,7 @@ around errors by hand-editing the generated spec.
 
 - [Framework install and mounting recipes](references/frameworks.md)
 - [Annotation and DTO recipes](references/annotations-recipes.md)
+- [Models and serialization packages](references/models.md)
 - [Documentation quality checklist](references/quality-checklist.md)
 - [Troubleshooting and validation](references/troubleshooting.md)
 - [Copyable axle.yaml template](assets/axle.yaml)

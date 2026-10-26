@@ -1,9 +1,10 @@
 # axle — OpenAPI 3.1 for Dart Servers
 
 **Status:** authoritative design and roadmap
-**Date:** 2026-10-23
+**Date:** 2026-10-23, roadmap revised for 0.3.0 on 2026-10-24
 **Supersedes:** `dart-openapi-design.md` where decisions conflict. The original file remains useful as historical exploration.
-**Scope:** server-side Dart only. Relic and Shelf adapters. Framework-agnostic core.
+**Scope:** server-side Dart only. Relic, Shelf, and Serverpod adapters. Framework-agnostic core.
+**Note:** the sections on the 0.1 design (summary, status, non-goals) are kept as a record. Where they disagree with section 12 or the docs, section 12 and the docs are current.
 
 ---
 
@@ -54,7 +55,7 @@ axle should produce a trustworthy contract and stay out of runtime behavior it d
 - Runtime route discovery.
 - Route discovery from Relic internals.
 - Swagger UI URL configuration in `axle.yaml`.
-- Dart Frog adapter. Serverpod is covered in Phase 2.
+- Dart Frog adapter. The Serverpod adapter shipped in 0.2.0.
 - Class/method endpoint discovery.
 - Build runner integration.
 - Multiple specs per package.
@@ -198,7 +199,7 @@ Current state:
 - Per-package tests
 - `gen --check` for both examples
 
-### Resolved in the Phase 0 pass
+### Resolved before 0.1.0
 
 - `axle.yaml` was reduced to `openapi`, `info`, and `generate`.
 - `docs` and `swagger_ui_url` remain runtime adapter concerns and are rejected.
@@ -414,15 +415,14 @@ Overrides are optional and should be used only for stable public contracts.
 
 ### Unsupported for now
 
-- Generic DTO classes.
-- Type parameters in fields.
+- Generic sealed classes (use explicit `oneOf`).
+- Unresolved type parameters in fields.
 - Records.
 - Function types.
 - Mixins as DTO types.
-- Custom `JsonValue` / `JsonEnum` serialization.
-- Global `json_serializable` field rename rules.
-- Automatic polymorphic/sealed-class inference.
-- Automatic `allOf`/`anyOf` generation. Explicit `oneOf` with a discriminator is supported.
+- Non-string `@JsonValue` and `@JsonEnum(valueField:)`.
+- `build.yaml` serializer options other than `field_rename`, `ignore_unannotated`, `caseStyle`, and `enumCaseStyle`; the rest do not change the JSON.
+- Inferred `allOf`/`anyOf`. Explicit `oneOf`, `anyOf` and `allOf` are supported, and sealed classes become `oneOf` automatically.
 
 These are documented limitations, not silent guesses.
 
@@ -533,9 +533,15 @@ Security metadata is generated from opt-in configuration and route annotations:
 
 ---
 
-## 12. Roadmap
+## 12. Roadmap by version
 
-### Phase 0 — Config cleanup and example relocation (done — 2026-10-22)
+The roadmap that readers see is [`doc/guide/roadmap.md`](../doc/guide/roadmap.md),
+published at https://axle.infms.dev/guide/roadmap. This section keeps the design
+reasoning behind each version.
+
+### 0.1.0 (released 2026-10-23)
+
+Config cleanup, the first two adapters, and the first release.
 
 - [x] Remove `docs` and `swagger_ui_url` from `axle.yaml` handling; `servers`, `tags`, and `security` were re-added later as opt-in metadata.
 - [x] Rework config to `openapi`, `info`, `generate.scan`, `generate.output`.
@@ -549,34 +555,34 @@ Security metadata is generated from opt-in configuration and route annotations:
 - [x] Update CI, root README, and `axle_relic` README.
 - [x] Re-export `axle_core` from `axle_relic` so Relic apps declare one runtime dependency.
 - [x] Add Melos workspace scripts (`analyze`, `test`, `format`, `gen-check`, `check`).
-- [x] Keep no example tests.
-
-**Exit criteria:** `dart analyze` clean, package tests pass, example `gen --check` passes, live example serves `/health`, `/todos`, `/openapi.json`, and `/docs`.
-
-### Phase 1 — Contract quality
-
-- [x] Strict schema validation and duplicate detection.
-- [x] Better examples/defaults support.
-- [x] Response headers, cookie parameters, and multiple media types.
-- [x] Explicit `oneOf`/discriminator schemas.
-- [ ] Source locations in generator errors.
-- [ ] OpenAPI 3.1 structural validation in CI (Redocly or a JSON Schema validator).
-- [ ] Contract diff tooling or CI artifact comparison.
-
-**Exit criteria:** generated spec validates against OpenAPI 3.1; errors point to the offending Dart symbol; schema coverage is documented.
-
-### Phase 2 — Framework adapters
-
 - [x] Extract the `AxleDocs` contract from `axle_relic`.
 - [x] Add `axle_shelf`.
 - [x] Generate local Swagger UI assets into `generate.output.ui`.
-- [x] Add `axle_serverpod` (plan researched 2026-10-23 against Serverpod 4.x; see
-  `axle_serverpod` plan below).
-- Add `axle_dart_frog` if it adds value beyond Shelf.
+- [x] Replace publishable-package path dependencies with version constraints.
+- [x] Add repository/homepage/issue-tracker metadata and `.pubignore` files.
+- [x] Add per-package tag-driven pub.dev publishing workflows with OIDC.
+- [x] Add MIT license files to every publishable package.
 
-**Exit criteria:** each adapter serves the same generated artifact with no core/cli changes.
+**Exit criteria:** `dart analyze` clean, package tests pass, example `gen --check` passes, live example serves `/health`, `/todos`, `/openapi.json`, and `/docs`.
 
-#### `axle_serverpod` plan
+### 0.2.0 (released 2026-10-24)
+
+Contract quality, security metadata, and the Serverpod adapter.
+
+- [x] Strict schema validation and duplicate detection.
+- [x] Response headers, cookie parameters, multiple media types, and multipart bodies.
+- [x] Parameter and property constraints.
+- [x] Explicit `oneOf`/discriminator schemas.
+- [x] Security scheme definitions in `axle.yaml`, route-level security annotations, a global default, and validation against defined schemes. Example middleware remains application-owned.
+- [x] Global tags, external docs, terms of service, and optional servers.
+- [x] Add `axle_serverpod` (plan researched 2026-10-23 against Serverpod 4.x; see the design below).
+- [x] Document supported Dart floors per package.
+
+**Exit criteria:** security refs validate; documentation matches an actually
+protected example app (metadata only; enforcement stays in middleware); each
+adapter serves the same generated artifact with no core or CLI changes.
+
+#### `axle_serverpod` design
 
 Serverpod exposes two HTTP surfaces; only one is documentable as REST:
 
@@ -612,14 +618,15 @@ pod.webServer.addRoute(
 - Docs serve from the **web server port**, not the API server port — the
   adapter README states this explicitly.
 
-Generation gap: `axle gen` discovers `@ApiRoute` on top-level functions, but
-Serverpod REST handlers are `handleCall` methods on `Route` subclasses.
-Chosen pattern (no core changes): annotate a top-level function, delegate
-from a thin `Route` class, register the same path in `addRoute`. Derive the
-`addRoute` path and the annotation path from a shared constant — the two
-strings can otherwise drift (accepted Swaggo-model cost). Method discovery in
-core (option B) stays deferred until a second framework demands it; it must
-not be un-deferred for one adapter.
+Generation gap: when 0.2.0 shipped, `axle gen` discovered `@ApiRoute` on
+top-level functions only, but Serverpod REST handlers are `handleCall` methods
+on `Route` subclasses. The chosen pattern needed no core changes: annotate a
+top-level function, delegate from a thin `Route` class, and register the same
+path in `addRoute`. Derive the `addRoute` path and the annotation path from a
+shared constant, because the two strings can otherwise drift (accepted
+Swaggo-model cost). Method discovery was added to the core in 0.3.0 for every
+framework, so `handleCall` can now carry the annotation itself; the delegate
+pattern remains valid.
 
 Effort: comparable to `axle_shelf`. `StaticRoute` traversal behavior was
 verified in the Relic 2.0 static handler before implementation.
@@ -627,36 +634,41 @@ verified in the Relic 2.0 static handler before implementation.
 The adapter requires Serverpod 4.x, which uses Relic 2.x. `axle_relic` moved
 from Relic 1.2.0 to 2.0.0-rc.2 so the workspace resolves one Relic major.
 
-### Phase 3 — Security metadata (done)
+### 0.3.0 (unreleased)
 
-- [x] Scheme definition API in `axle.yaml`.
-- [x] Route-level security annotations.
-- [x] Global default security.
-- [x] Validation against defined schemes.
-- [x] Documentation and tests; example middleware remains application-owned.
+Models, wider Dart shapes, and precise diagnostics. The package changelogs list
+every change; the themes are:
 
-**Exit criteria:** security refs validate; documentation matches an actually
-protected example app (metadata only; enforcement stays in middleware).
+- [x] Source locations in generator errors; all problems are reported in one run.
+- [x] `@ApiRoute` on methods and top-level variables, not only top-level functions.
+- [x] Generic DTOs, one schema per instantiation.
+- [x] Sealed classes as `oneOf`; explicit `allOf` and `anyOf`.
+- [x] `json_serializable`, `freezed`, and `dart_mappable` support, including custom converters, `@ApiProperty(type:)`, and the `build.yaml` options that change names or fields (invalid or conflicting values fail with exit 65).
+- [x] A route drift test: `checkDocumentedRoutes` in core and `checkShelfRoutes` in the Shelf adapter.
+- [x] Response keys `default` and `4XX`, more response shortcuts, parameter `style` and `explode`, and named examples.
+- [x] Several media types per status, `ApiRoute(bodies:)`, binary `format` by media type, and constraints on list items.
+- [x] `axle_relic` accepts Relic `>=1.2.0 <3.0.0`.
+- [x] OpenAPI 3.1 structural validation in CI (Redocly on the examples and the golden specs), and golden spec tests across fixtures.
+- [x] Runnable examples for `json_serializable`, `dart_mappable`, and `freezed`, and a showcase API tested against its own spec.
 
-### Phase 4 — Distribution
+**Exit criteria:** generated specs validate against OpenAPI 3.1; errors point to
+the offending Dart symbol; the spec of every model-package example matches the
+JSON its server sends.
 
-- Publish `axle_core`, `axle_cli`, `axle_relic`, `axle_shelf`, and
-  `axle_serverpod`.
-- [x] Replace publishable-package path dependencies with version constraints.
-- [x] Add repository/homepage/issue-tracker metadata and `.pubignore` files.
-- [x] Add per-package tag-driven pub.dev publishing workflows with OIDC.
-- [x] Add MIT license files to every publishable package.
-- Document supported Dart/analyzer/framework versions.
+### Later
 
-**Exit criteria:** packages install from pub.dev; example works from a clean checkout.
+No version assigned.
 
-### Phase 5 — Advanced tooling
-
-- Watch mode.
-- Contract lint/diff command.
-- Mock server from spec/examples.
-- `transformJson` hook for serving.
-- Multiple specs per package (only if real demand exists).
+- `axle_dart_frog`, if it adds value beyond Shelf. Dart Frog derives paths from
+  file names, so the generator would take the path from the route file.
+- Contract diff: compare two specs and flag breaking changes.
+- Watch mode, a mock server from the spec and its examples, and a
+  `transformJson` serving hook.
+- `x-` extensions, webhooks, and callbacks, when someone needs them.
+- Tag filtering and multiple specs per package, only if real demand exists.
+- Locations on warnings.
+- freezed `unionValueCase`, dart_mappable discriminators, non-string
+  `@JsonValue`, and generic sealed classes.
 
 ---
 
@@ -679,11 +691,14 @@ Do not add:
 
 - Example unit tests for this pass.
 
+Done in 0.3.0:
+
+- OpenAPI validation in CI (Redocly on the examples and the golden specs).
+- Golden spec tests across fixtures.
+
 Future:
 
-- OpenAPI validator in CI.
 - Analyzer version matrix.
-- Golden spec tests across fixtures.
 
 ---
 
@@ -697,26 +712,28 @@ Future:
 | Runtime config drift | Servers are opt-in; default Swagger UI uses the current origin |
 | Security drift | Metadata only; enforcement stays application-owned |
 | Path traversal in config | Reject scan/output paths outside project root |
-| Path deps block publishing | Phase 4 replaces path deps with versions |
-| Relic API changes | Keep adapter tiny; test against pinned Relic 2.0.0-rc.2 |
+| Path deps block publishing | Done in 0.1.0: publishable packages use version constraints |
+| Relic API changes | Keep adapter tiny; tested on Relic 1.2.0 and 2.0.0-rc.2 (0.3.0) |
 | Serverpod shape mismatch | Separate adapter; do not contort core |
 | CDN dependency | `axle gen` emits local Swagger UI assets; adapters accept `swaggerUiDirectory` |
-| Drift from `json_serializable` | Document supported subset; add global field-rename support later |
+| Drift from model packages | Read `json_serializable`, `freezed`, and `dart_mappable` annotations (0.3.0); `build.yaml` options that change names or fields are read, and invalid or conflicting values fail with exit 65 |
+| `analyzer` pin conflicts with code generators | freezed 3.x cannot share a `pubspec.yaml` with `axle_cli`; install the CLI globally |
 
 ---
 
 ## 15. Open Decisions
 
-1. Should `allOf`/`anyOf` and automatic sealed-hierarchy inference be added?
+1. ~~Should `allOf`/`anyOf` and automatic sealed-hierarchy inference be added?~~ Resolved in 0.3.0: sealed classes become `oneOf`; `allOf` and `anyOf` are explicit in `@ApiSchema`. Inferring `allOf` from inheritance stays open.
 2. Should watch mode, tag filtering, and multiple specs per package be added?
 3. Should a config schema version be added for future migrations?
-4. Should a future `axle_gen` build_runner mode reuse the CLI’s scanner?
+4. Should a future `axle_gen` build_runner mode reuse the CLI’s scanner? The `analyzer` conflict with freezed 3.x shows the cost of coupling.
 5. ~~Should `axle_core` expose a small adapter interface?~~ Resolved: `AxleDocs` is the framework-neutral contract.
-6. Should the example be a workspace member or a standalone package with its own lockfile?
+6. ~~Should the example be a workspace member or a standalone package with its own lockfile?~~ Resolved: the Relic and Shelf examples are workspace members; the Serverpod, `dart_mappable`, and `freezed` examples are standalone because their dependencies cannot share one resolution.
 
-Current recommendations: explicit `oneOf` only, one spec per package by
-default, security metadata without enforcement, no build_runner, `AxleDocs` as
-the stable adapter contract.
+Current recommendations: `oneOf`, `anyOf`, and `allOf` explicit, with sealed
+classes as `oneOf` automatically; one spec per package by default; security
+metadata without enforcement; no build_runner for axle itself; `AxleDocs` as the
+stable adapter contract.
 
 ---
 
@@ -807,7 +824,7 @@ packages/
 
 ---
 
-## 17. Phase 0 Completion Checklist
+## 17. 0.1.0 Completion Checklist
 
 - [x] Refactor `AxleConfig` to the new `axle.yaml` schema.
 - [x] Remove `docs` and `swagger_ui_url` config support; `servers`, `tags`, and

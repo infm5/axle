@@ -21,7 +21,7 @@ jq '.info, .paths | keys, .components.securitySchemes' openapi.json
 
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
-| `0 paths` generated | Scan path misses the handlers, or annotations are not on top-level functions | Fix `generate.scan`; move `@ApiRoute` to a top-level function |
+| `0 paths` generated | Scan path misses the handlers, or annotations are on inline closures, or on methods with axle 0.2.0 | Fix `generate.scan`; move `@ApiRoute` to a top-level function (methods and top-level variables need 0.3.0) |
 | `No Dart libraries found` | `generate.scan` points at a missing/empty directory | Use the actual `lib` or source directory |
 | `Unknown key 'docs'` / `'swagger_ui_url'` | Runtime adapter options were added to `axle.yaml` | Remove them; pass options to the adapter |
 | `references unknown security scheme` | Route references a scheme not under `security.schemes` | Define the scheme or remove the requirement |
@@ -58,7 +58,8 @@ jq '.info, .paths | keys, .components.securitySchemes' openapi.json
 
 - Docs use `pod.webServer`, not the API server.
 - `serverpod start`/Insights list Endpoint methods, not web-server `Route`s.
-- Annotate a top-level delegate and call it from `Route.handleCall`.
+- Annotate a top-level delegate and call it from `Route.handleCall`. With axle
+  0.3.0 you can annotate `handleCall` itself.
 - Keep the annotation path and `addRoute` path in one constant.
 - API-server `Endpoint` RPC methods are not documented by this adapter.
 

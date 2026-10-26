@@ -50,6 +50,15 @@ melos:
     check-serverpod-example:
       description: Analyze the Serverpod example and verify its generated artifacts.
       run: bash -c 'cd packages/axle_serverpod/example && dart pub get && cd axle_serverpod_example_server && dart analyze && dart run axle_cli:axle gen --check'
+    check-dart-mappable-example:
+      description: Analyze the dart_mappable example and verify its generated artifacts.
+      run: bash -c 'cd examples/dart_mappable && dart pub get && dart analyze && dart run axle_cli:axle gen --check'
+    check-freezed-example:
+      description: Analyze the freezed example and verify its artifacts with the globally activated CLI.
+      run: bash -c 'dart pub global activate --source path packages/axle_cli && cd examples/freezed_unions && dart pub get && dart analyze && dart pub global run axle_cli:axle gen --check'
+    check-showcase-example:
+      description: Analyze the showcase, verify its artifacts, and run its conformance test.
+      run: bash -c 'cd examples/showcase && dart pub get && dart analyze && dart run axle_cli:axle gen --check && dart test'
     coverage:
       description: Run tests and write a Codecov-compatible LCOV report.
       steps:
@@ -69,3 +78,6 @@ melos:
         - dart run melos run gen-check
         - dart run melos run gen-check-shelf
         - dart run melos run check-serverpod-example
+        - dart run melos run check-dart-mappable-example
+        - dart run melos run check-freezed-example
+        - dart run melos run check-showcase-example
