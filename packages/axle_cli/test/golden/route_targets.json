@@ -1,0 +1,79 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Golden route_targets",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "HealthRoutes_health",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/notes": {
+      "get": {
+        "operationId": "NoteRoutes_list",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ping": {
+      "get": {
+        "operationId": "ping",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/todos": {
+      "get": {
+        "operationId": "TodoRoutes_list",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/todos/{id}": {
+      "get": {
+        "operationId": "TodoRoutes_get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/top": {
+      "get": {
+        "operationId": "top",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  }
+}

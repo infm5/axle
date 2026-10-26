@@ -55,6 +55,8 @@ class OpenApiSchema {
     this.maxLength,
     this.pattern,
     this.oneOf,
+    this.allOf,
+    this.anyOf,
     this.discriminator,
   });
 
@@ -78,6 +80,8 @@ class OpenApiSchema {
        maxLength = null,
        pattern = null,
        oneOf = null,
+       allOf = null,
+       anyOf = null,
        discriminator = null;
 
   /// Creates a string schema.
@@ -100,6 +104,8 @@ class OpenApiSchema {
        minimum = null,
        maximum = null,
        oneOf = null,
+       allOf = null,
+       anyOf = null,
        discriminator = null;
 
   /// Creates an integer schema.
@@ -122,6 +128,8 @@ class OpenApiSchema {
        maxLength = null,
        pattern = null,
        oneOf = null,
+       allOf = null,
+       anyOf = null,
        discriminator = null;
 
   /// Creates a number schema.
@@ -144,6 +152,8 @@ class OpenApiSchema {
        maxLength = null,
        pattern = null,
        oneOf = null,
+       allOf = null,
+       anyOf = null,
        discriminator = null;
 
   /// Creates a boolean schema.
@@ -166,6 +176,8 @@ class OpenApiSchema {
        maxLength = null,
        pattern = null,
        oneOf = null,
+       allOf = null,
+       anyOf = null,
        discriminator = null;
 
   /// Creates an array schema.
@@ -189,6 +201,8 @@ class OpenApiSchema {
        maxLength = null,
        pattern = null,
        oneOf = null,
+       allOf = null,
+       anyOf = null,
        discriminator = null;
 
   /// Creates an object schema.
@@ -211,6 +225,8 @@ class OpenApiSchema {
        maxLength = null,
        pattern = null,
        oneOf = null,
+       allOf = null,
+       anyOf = null,
        discriminator = null;
 
   /// Creates a schema referencing a component schema.
@@ -233,6 +249,8 @@ class OpenApiSchema {
        maxLength = null,
        pattern = null,
        oneOf = null,
+       allOf = null,
+       anyOf = null,
        discriminator = null;
 
   /// Creates a schema matching one of [schemas].
@@ -243,6 +261,58 @@ class OpenApiSchema {
     this.nullable = false,
     this.discriminator,
   }) : oneOf = schemas,
+       allOf = null,
+       anyOf = null,
+       type = null,
+       format = null,
+       defaultValue = null,
+       enumValues = null,
+       items = null,
+       properties = null,
+       requiredProperties = null,
+       additionalProperties = null,
+       ref = null,
+       minimum = null,
+       maximum = null,
+       minLength = null,
+       maxLength = null,
+       pattern = null;
+
+  /// Creates a schema matching all of [schemas].
+  const OpenApiSchema.allOf(
+    List<OpenApiSchema> schemas, {
+    this.description,
+    this.example,
+    this.nullable = false,
+  }) : allOf = schemas,
+       oneOf = null,
+       anyOf = null,
+       discriminator = null,
+       type = null,
+       format = null,
+       defaultValue = null,
+       enumValues = null,
+       items = null,
+       properties = null,
+       requiredProperties = null,
+       additionalProperties = null,
+       ref = null,
+       minimum = null,
+       maximum = null,
+       minLength = null,
+       maxLength = null,
+       pattern = null;
+
+  /// Creates a schema matching at least one of [schemas].
+  const OpenApiSchema.anyOf(
+    List<OpenApiSchema> schemas, {
+    this.description,
+    this.example,
+    this.nullable = false,
+    this.discriminator,
+  }) : anyOf = schemas,
+       oneOf = null,
+       allOf = null,
        type = null,
        format = null,
        defaultValue = null,
@@ -279,6 +349,8 @@ class OpenApiSchema {
        maxLength = null,
        pattern = null,
        oneOf = null,
+       allOf = null,
+       anyOf = null,
        discriminator = null;
 
   /// Creates a schema that only matches `null`.
@@ -300,6 +372,8 @@ class OpenApiSchema {
       maxLength = null,
       pattern = null,
       oneOf = null,
+      allOf = null,
+      anyOf = null,
       discriminator = null;
 
   /// Creates a string schema formatted as a date-time.
@@ -322,6 +396,8 @@ class OpenApiSchema {
        maxLength = null,
        pattern = null,
        oneOf = null,
+       allOf = null,
+       anyOf = null,
        discriminator = null;
 
   /// Creates a string schema formatted as a URI.
@@ -344,6 +420,8 @@ class OpenApiSchema {
        maxLength = null,
        pattern = null,
        oneOf = null,
+       allOf = null,
+       anyOf = null,
        discriminator = null;
 
   /// Creates a string schema formatted as a duration.
@@ -366,6 +444,8 @@ class OpenApiSchema {
        maxLength = null,
        pattern = null,
        oneOf = null,
+       allOf = null,
+       anyOf = null,
        discriminator = null;
 
   /// The JSON type, or `null` when the schema does not constrain the type.
@@ -422,7 +502,13 @@ class OpenApiSchema {
   /// A list of schemas where exactly one must match.
   final List<OpenApiSchema>? oneOf;
 
-  /// The discriminator for [oneOf], when present.
+  /// A list of schemas that must all match.
+  final List<OpenApiSchema>? allOf;
+
+  /// A list of schemas where at least one must match.
+  final List<OpenApiSchema>? anyOf;
+
+  /// The discriminator for [oneOf] or [anyOf], when present.
   final OpenApiDiscriminator? discriminator;
 
   /// Returns a copy of this schema that also accepts `null`.
@@ -445,6 +531,8 @@ class OpenApiSchema {
     maxLength: maxLength,
     pattern: pattern,
     oneOf: oneOf,
+    allOf: allOf,
+    anyOf: anyOf,
     discriminator: discriminator,
   );
 
@@ -468,6 +556,8 @@ class OpenApiSchema {
     maxLength: maxLength,
     pattern: pattern,
     oneOf: oneOf,
+    allOf: allOf,
+    anyOf: anyOf,
     discriminator: discriminator,
   );
 
@@ -491,6 +581,8 @@ class OpenApiSchema {
     maxLength: maxLength,
     pattern: pattern,
     oneOf: oneOf,
+    allOf: allOf,
+    anyOf: anyOf,
     discriminator: discriminator,
   );
 
@@ -499,6 +591,65 @@ class OpenApiSchema {
   /// A `null` constraint keeps the existing value. An empty [enumValues] list
   /// also keeps the existing value.
   OpenApiSchema withConstraints({
+    String? format,
+    List<Object?>? enumValues,
+    num? minimum,
+    num? maximum,
+    int? minLength,
+    int? maxLength,
+    String? pattern,
+  }) {
+    // JSON Schema has no `format`, bounds, or length on arrays, so a constraint
+    // written on a `List<T>` property describes its items.
+    if (type == 'array' && items != null) {
+      return _withItems(
+        items!.withConstraints(
+          format: format,
+          enumValues: enumValues,
+          minimum: minimum,
+          maximum: maximum,
+          minLength: minLength,
+          maxLength: maxLength,
+          pattern: pattern,
+        ),
+      );
+    }
+    return _constrained(
+      format: format,
+      enumValues: enumValues,
+      minimum: minimum,
+      maximum: maximum,
+      minLength: minLength,
+      maxLength: maxLength,
+      pattern: pattern,
+    );
+  }
+
+  OpenApiSchema _withItems(OpenApiSchema newItems) => OpenApiSchema._(
+    type: type,
+    format: format,
+    description: description,
+    example: example,
+    defaultValue: defaultValue,
+    enumValues: enumValues,
+    items: newItems,
+    properties: properties,
+    requiredProperties: requiredProperties,
+    additionalProperties: additionalProperties,
+    ref: ref,
+    nullable: nullable,
+    minimum: minimum,
+    maximum: maximum,
+    minLength: minLength,
+    maxLength: maxLength,
+    pattern: pattern,
+    oneOf: oneOf,
+    allOf: allOf,
+    anyOf: anyOf,
+    discriminator: discriminator,
+  );
+
+  OpenApiSchema _constrained({
     String? format,
     List<Object?>? enumValues,
     num? minimum,
@@ -526,6 +677,8 @@ class OpenApiSchema {
     maxLength: maxLength ?? this.maxLength,
     pattern: pattern ?? this.pattern,
     oneOf: oneOf,
+    allOf: allOf,
+    anyOf: anyOf,
     discriminator: discriminator,
   );
 
@@ -549,6 +702,8 @@ class OpenApiSchema {
     maxLength: maxLength,
     pattern: pattern,
     oneOf: oneOf,
+    allOf: allOf,
+    anyOf: anyOf,
     discriminator: discriminator,
   );
 
@@ -599,6 +754,22 @@ class OpenApiSchema {
       final schemas = [...oneOf!];
       if (nullable) schemas.add(const OpenApiSchema.nullSchema());
       result['oneOf'] = [for (final schema in schemas) schema.toJson()];
+    }
+    if (anyOf != null) {
+      final schemas = [...anyOf!];
+      if (nullable) schemas.add(const OpenApiSchema.nullSchema());
+      result['anyOf'] = [for (final schema in schemas) schema.toJson()];
+    }
+    if (allOf != null) {
+      final composed = [for (final schema in allOf!) schema.toJson()];
+      if (nullable) {
+        result['anyOf'] = [
+          {'allOf': composed},
+          {'type': 'null'},
+        ];
+      } else {
+        result['allOf'] = composed;
+      }
     }
     if (discriminator != null) {
       result['discriminator'] = discriminator!.toJson();

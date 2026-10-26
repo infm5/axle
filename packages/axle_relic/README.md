@@ -78,5 +78,5 @@ The adapter serves the generated OpenAPI document verbatim, including
 `securitySchemes`, `security`, response headers, cookies, and media types. It
 does not enforce security; the example handlers show application-owned checks.
 
-The package targets Relic 2.0.0-rc.2 and will move to the stable Relic 2.x line
-once it is published.
+The adapter accepts Relic `>=1.2.0 <3.0.0`. Its tests pass on Relic 1.2.0 and on
+the 2.0.0 release candidate; the example and Serverpod adapter use Relic 2.

@@ -1,3 +1,11 @@
+## Unreleased
+
+- Added `checkShelfRoutes`, which calls every path in a generated spec on a
+  `Handler` and reports the ones nothing serves. It sends `GET`, `HEAD`, and
+  `OPTIONS` unless you pass `methods:`, and needs no running server.
+- The example uses `json_serializable` response models and tests its routes
+  against the generated spec.
+
 ## 0.2.0
 
 - Aligned with `axle_core` 0.2.0.

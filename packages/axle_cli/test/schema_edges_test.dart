@@ -167,12 +167,7 @@ void main() {
   });
 
   group('schema errors', () {
-    const cases = [
-      'duplicate_property',
-      'generic_class',
-      'function_type',
-      'record_type',
-    ];
+    const cases = ['duplicate_property', 'function_type', 'record_type'];
 
     for (final testCase in cases) {
       test('rejects $testCase', () async {

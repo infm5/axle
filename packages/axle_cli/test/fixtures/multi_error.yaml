@@ -1,0 +1,11 @@
+openapi: 3.1.0
+info:
+  title: Broken API
+  version: 1.0.0
+generate:
+  scan:
+    - test/fixtures/multi_error
+  output:
+    json: .dart_tool/axle_test/multi_error/openapi.json
+    ui: .dart_tool/axle_test/multi_error/swagger-ui
+    dart: .dart_tool/axle_test/multi_error/openapi.g.dart

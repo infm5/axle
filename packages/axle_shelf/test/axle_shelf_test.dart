@@ -144,6 +144,85 @@ void main() {
       expect(await asset.readAsString(), 'body{}');
     });
   });
+
+  group('checkShelfRoutes', () {
+    const spec = '''
+{
+  "openapi": "3.1.0",
+  "info": {"title": "Routes", "version": "1.0.0"},
+  "paths": {
+    "/items": {"get": {}, "post": {}},
+    "/items/{id}": {
+      "get": {
+        "parameters": [
+          {"name": "id", "in": "path", "required": true,
+           "schema": {"type": "integer"}}
+        ]
+      }
+    },
+    "/renamed": {"get": {}}
+  }
+}
+''';
+
+    /// Serves `/items` and `/items/<id>`; `/renamed` moved to `/new-name`.
+    Future<Response> app(Request request) async {
+      final path = '/${request.url.path}';
+      if (path == '/items') return Response.ok('[]');
+      if (path.startsWith('/items/')) {
+        return Response.notFound('{"error":"no such item"}');
+      }
+      return Response.notFound('Not Found');
+    }
+
+    test('reports the documented route that nothing serves', () async {
+      final reports = await checkShelfRoutes(app, spec: spec);
+      final unrouted = reports.where((report) => !report.isRouted);
+      expect(unrouted.map((report) => report.route.path), ['/renamed']);
+    });
+
+    test('a handler that 404s with its own body is routed', () async {
+      final reports = await checkShelfRoutes(app, spec: spec);
+      final byItem = reports.singleWhere(
+        (report) => report.route.path == '/items/{id}',
+      );
+      expect(byItem.isRouted, isTrue);
+      expect(byItem.route.requestPath, '/items/1');
+      expect(byItem.response.status, 404);
+    });
+
+    test('only safe methods are called unless asked', () async {
+      final seen = <String>[];
+      await checkShelfRoutes((request) async {
+        seen.add(request.method);
+        return Response.ok('x');
+      }, spec: spec);
+      expect(seen.toSet(), {'GET'});
+
+      seen.clear();
+      await checkShelfRoutes(
+        (request) async {
+          seen.add(request.method);
+          return Response.ok('x');
+        },
+        spec: spec,
+        methods: {'GET', 'POST'},
+      );
+      expect(seen.toSet(), {'GET', 'POST'});
+    });
+
+    test('a handler that throws still counts as answering', () async {
+      final reports = await checkShelfRoutes((request) async {
+        if (request.url.path == 'items') throw StateError('boom');
+        return Response.notFound('Not Found');
+      }, spec: spec);
+      final items = reports.singleWhere(
+        (report) => report.route.path == '/items',
+      );
+      expect(items.isRouted, isTrue);
+      expect(items.response.body, contains('boom'));
+    });
+  });
 }
 
 Future<Response> _get(Handler handler, String path) async {

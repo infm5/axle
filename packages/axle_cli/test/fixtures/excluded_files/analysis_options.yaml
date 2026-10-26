@@ -1,0 +1,4 @@
+analyzer:
+  exclude:
+    - "**/*.mapper.dart"
+    - "**/*.freezed.dart"

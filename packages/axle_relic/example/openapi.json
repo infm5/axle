@@ -9,7 +9,8 @@
       "email": "example@example.com"
     },
     "license": {
-      "name": "MIT"
+      "name": "MIT",
+      "identifier": "MIT"
     }
   },
   "tags": [

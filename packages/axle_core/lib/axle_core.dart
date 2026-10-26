@@ -9,4 +9,5 @@ export 'src/docs.dart';
 export 'src/openapi/document.dart';
 export 'src/openapi/schema.dart';
 export 'src/openapi/security.dart';
+export 'src/route_check.dart';
 export 'src/swagger_ui.dart';

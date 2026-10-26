@@ -3,6 +3,7 @@ library;
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -79,7 +80,12 @@ class SourceScanner {
       final sortedFiles = files.toList()..sort();
       final libraries = <String, LibraryElement>{};
       for (final file in sortedFiles) {
-        final session = collection.contextFor(file).currentSession;
+        // `analysis_options.yaml` may exclude generated files (`*.freezed.dart`
+        // and similar). Their library is still resolved through the file that
+        // includes them as a part.
+        final context = _contextFor(collection, file);
+        if (context == null) continue;
+        final session = context.currentSession;
         final result = await session.getResolvedLibrary(file);
         if (result is ResolvedLibraryResult) {
           libraries[result.element.identifier] = result.element;
@@ -97,6 +103,16 @@ class SourceScanner {
     } finally {
       await collection.dispose();
     }
+  }
+
+  AnalysisContext? _contextFor(
+    AnalysisContextCollection collection,
+    String file,
+  ) {
+    for (final context in collection.contexts) {
+      if (context.contextRoot.isAnalyzed(file)) return context;
+    }
+    return null;
   }
 
   bool _skip(String path) {

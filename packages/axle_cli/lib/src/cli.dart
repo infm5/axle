@@ -28,7 +28,9 @@ Future<int> runCli(List<String> args) async {
       ..writeln(error.usage);
     return AxleExitCode.usage;
   } on AxleException catch (error) {
-    stderr.writeln('axle: ${error.message}');
+    for (final line in error.formatted.split('\n')) {
+      stderr.writeln('axle: $line');
+    }
     return error.exitCode;
   } on Object catch (error, stackTrace) {
     stderr.writeln('axle: unexpected error: $error');

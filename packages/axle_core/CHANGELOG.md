@@ -1,3 +1,31 @@
+## Unreleased
+
+- Added `allOf` and `anyOf` to `@ApiSchema`, and the matching
+  `OpenApiSchema.allOf` / `OpenApiSchema.anyOf` constructors.
+- Added `ApiResponse.unauthorized`, `forbidden`, `conflict`,
+  `unprocessableEntity`, and `tooManyRequests`.
+- Added `ApiResponse.defaultResponse` and `ApiResponse.range` (`4XX`). They take
+  named options (`type:`, `headers:`, `contentTypes:`, ...), so they can carry
+  `application/problem+json`.
+- Added `style` and `explode` to the parameter annotations, with the
+  `ApiParameterStyle` enum.
+- Added `ApiExample` and `examples` on parameters, `ApiBody`, and `ApiResponse`,
+  with `OpenApiExample` in the document model.
+- Added `ApiProperty(type:)` to state a property's JSON type, for custom
+  converters whose type axle cannot infer.
+- Added `ApiRoute(bodies:)` for request bodies whose media types have different
+  schemas, and allowed several `ApiResponse`s to share a status when their media
+  types differ.
+- Constraints written on a `List<T>` property (`format`, bounds, length, pattern,
+  enum) now describe its items, so `@ApiProperty(format: 'binary')` on a
+  `List<Uint8List>` marks each file.
+- `OpenApiHeader` now carries its `example`.
+- Added `documentedRoutes` and `checkDocumentedRoutes`, with `RouteSender`,
+  `RouteResponse`, `RouteReport`, `RouteOutcome`, and `safeRouteMethods`, to test
+  that every path in a generated spec reaches a handler, so an `@ApiRoute` path
+  and its router registration cannot drift apart unnoticed. Only `GET`, `HEAD`,
+  and `OPTIONS` are sent unless the caller opts in to more.
+
 ## 0.2.0
 
 - Added OpenAPI security schemes, requirements, and document/operation security.

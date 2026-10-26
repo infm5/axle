@@ -11,11 +11,14 @@ A complete Shelf API demonstrating axle_shelf:
 - response headers, cookie parameters, and content negotiation
 - parameter/property constraints and a `oneOf` activity schema
 - a multipart import body with a binary file property
+- `json_serializable` response models: `toJson` is generated, and the spec is
+  unchanged from the hand-written version (see `lib/src/models/note.dart`)
 
 ## Run
 
 ```sh
 dart pub get
+dart run build_runner build   # only after changing lib/src/models/note.dart
 dart run axle_cli:axle gen
 dart run bin/server.dart
 ```

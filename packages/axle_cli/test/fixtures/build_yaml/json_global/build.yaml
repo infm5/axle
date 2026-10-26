@@ -1,0 +1,4 @@
+global_options:
+  json_serializable:
+    options:
+      field_rename: snake

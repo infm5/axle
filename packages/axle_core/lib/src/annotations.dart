@@ -59,6 +59,7 @@ class ApiRoute {
     this.headerParams = const [],
     this.cookieParams = const [],
     this.body,
+    this.bodies = const [],
     this.responses = const [],
     this.security,
     this.ignore = false,
@@ -104,10 +105,19 @@ class ApiRoute {
   /// The request body accepted by the operation.
   final ApiBody? body;
 
+  /// More request bodies, for media types that carry a different schema.
+  ///
+  /// Use [body] when every media type shares one schema. Add entries here when,
+  /// for example, a `PATCH` accepts `application/merge-patch+json` with one
+  /// schema and `application/json-patch+json` with another. [body] and these
+  /// are merged into one request body; a media type may appear only once.
+  final List<ApiBody> bodies;
+
   /// The responses returned by the operation.
   ///
   /// When this list is empty, the generator emits a `200 OK` response without a
-  /// body.
+  /// body. Several responses may share a status when their media types differ:
+  /// they are merged into one response with one schema per media type.
   final List<ApiResponse> responses;
 
   /// Security requirements for the operation.
@@ -121,6 +131,63 @@ class ApiRoute {
   final bool ignore;
 }
 
+/// How a parameter value is serialized in the URL or headers.
+///
+/// Each style is valid for specific locations: `matrix`, `label` and `simple`
+/// for path parameters, `simple` for headers, `form`, `spaceDelimited`,
+/// `pipeDelimited` and `deepObject` for query parameters, and `form` for
+/// cookies.
+enum ApiParameterStyle {
+  /// Semicolon-prefixed values (`;id=5`). Path parameters.
+  matrix,
+
+  /// Dot-prefixed values (`.5`). Path parameters.
+  label,
+
+  /// `key=value` pairs; arrays repeat the key when exploded. Query and cookie
+  /// parameters.
+  form,
+
+  /// Comma-separated values. Path and header parameters.
+  simple,
+
+  /// Space-separated array values. Query parameters.
+  spaceDelimited,
+
+  /// Pipe-separated array values. Query parameters.
+  pipeDelimited,
+
+  /// Nested object values (`filter[a]=1`). Query parameters.
+  deepObject,
+}
+
+/// One named example value.
+///
+/// Use [ApiExample.new] for an inline value, or [ApiExample.external] to point
+/// at a document that holds it.
+class ApiExample {
+  /// Creates an example with an inline [value].
+  const ApiExample(this.value, {this.summary, this.description})
+    : externalValue = null;
+
+  /// Creates an example whose value lives at [url].
+  const ApiExample.external(String url, {this.summary, this.description})
+    : externalValue = url,
+      value = null;
+
+  /// The example value. Must be a compile-time constant.
+  final Object? value;
+
+  /// A URL of a document that contains the example value.
+  final String? externalValue;
+
+  /// A short description of the example.
+  final String? summary;
+
+  /// A longer description of the example.
+  final String? description;
+}
+
 /// Describes a path parameter.
 class ApiPathParam {
   /// Creates a path parameter annotation.
@@ -129,6 +196,9 @@ class ApiPathParam {
     required this.type,
     this.description,
     this.example,
+    this.examples = const {},
+    this.style,
+    this.explode,
     this.format,
     this.enumValues = const [],
     this.minimum,
@@ -170,6 +240,20 @@ class ApiPathParam {
 
   /// A regular expression the value must match.
   final String? pattern;
+
+  /// Named example values.
+  ///
+  /// Use either `example` or `examples`, not both.
+  final Map<String, ApiExample> examples;
+
+  /// How the value is serialized. Defaults to the OpenAPI default for the
+  /// parameter location.
+  final ApiParameterStyle? style;
+
+  /// Whether array and object values produce one parameter per item.
+  ///
+  /// Defaults to `true` for the `form` style and `false` otherwise.
+  final bool? explode;
 }
 
 /// Describes a query parameter.
@@ -181,6 +265,9 @@ class ApiQueryParam {
     this.required = false,
     this.description,
     this.example,
+    this.examples = const {},
+    this.style,
+    this.explode,
     this.defaultValue,
     this.format,
     this.enumValues = const [],
@@ -229,6 +316,20 @@ class ApiQueryParam {
 
   /// A regular expression the value must match.
   final String? pattern;
+
+  /// Named example values.
+  ///
+  /// Use either `example` or `examples`, not both.
+  final Map<String, ApiExample> examples;
+
+  /// How the value is serialized. Defaults to the OpenAPI default for the
+  /// parameter location.
+  final ApiParameterStyle? style;
+
+  /// Whether array and object values produce one parameter per item.
+  ///
+  /// Defaults to `true` for the `form` style and `false` otherwise.
+  final bool? explode;
 }
 
 /// Describes a header parameter.
@@ -240,6 +341,9 @@ class ApiHeaderParam {
     this.required = false,
     this.description,
     this.example,
+    this.examples = const {},
+    this.style,
+    this.explode,
     this.format,
     this.enumValues = const [],
     this.minimum,
@@ -284,6 +388,20 @@ class ApiHeaderParam {
 
   /// A regular expression the value must match.
   final String? pattern;
+
+  /// Named example values.
+  ///
+  /// Use either `example` or `examples`, not both.
+  final Map<String, ApiExample> examples;
+
+  /// How the value is serialized. Defaults to the OpenAPI default for the
+  /// parameter location.
+  final ApiParameterStyle? style;
+
+  /// Whether array and object values produce one parameter per item.
+  ///
+  /// Defaults to `true` for the `form` style and `false` otherwise.
+  final bool? explode;
 }
 
 /// Describes a cookie parameter.
@@ -295,6 +413,9 @@ class ApiCookieParam {
     this.required = false,
     this.description,
     this.example,
+    this.examples = const {},
+    this.style,
+    this.explode,
     this.format,
     this.enumValues = const [],
     this.minimum,
@@ -339,6 +460,20 @@ class ApiCookieParam {
 
   /// A regular expression the value must match.
   final String? pattern;
+
+  /// Named example values.
+  ///
+  /// Use either `example` or `examples`, not both.
+  final Map<String, ApiExample> examples;
+
+  /// How the value is serialized. Defaults to the OpenAPI default for the
+  /// parameter location.
+  final ApiParameterStyle? style;
+
+  /// Whether array and object values produce one parameter per item.
+  ///
+  /// Defaults to `true` for the `form` style and `false` otherwise.
+  final bool? explode;
 }
 
 /// Describes a request body.
@@ -349,6 +484,7 @@ class ApiBody {
     this.description,
     this.required = true,
     this.example,
+    this.examples = const {},
     this.contentTypes = const ['application/json'],
   });
 
@@ -366,6 +502,11 @@ class ApiBody {
 
   /// The media types accepted by the operation.
   final List<String> contentTypes;
+
+  /// Named example bodies.
+  ///
+  /// Use either [example] or [examples], not both.
+  final Map<String, ApiExample> examples;
 }
 
 /// Describes one response header.
@@ -408,68 +549,170 @@ class ApiResponse {
     this.description = '',
     this.nullable = false,
     this.example,
+    this.examples = const {},
     this.headers = const [],
     this.contentTypes = const ['application/json'],
-  });
+  }) : key = null;
 
   /// Creates a `200 OK` response.
-  const ApiResponse.ok([this.type, this.description = 'OK', this.example])
-    : status = 200,
-      nullable = false,
-      headers = const [],
-      contentTypes = const ['application/json'];
+  const ApiResponse.ok([Type? type, String description = 'OK', Object? example])
+    : this(status: 200, type: type, description: description, example: example);
 
   /// Creates a `201 Created` response.
   const ApiResponse.created([
-    this.type,
-    this.description = 'Created',
-    this.example,
-  ]) : status = 201,
-       nullable = false,
-       headers = const [],
-       contentTypes = const ['application/json'];
+    Type? type,
+    String description = 'Created',
+    Object? example,
+  ]) : this(
+         status: 201,
+         type: type,
+         description: description,
+         example: example,
+       );
 
   /// Creates a `204 No Content` response.
-  const ApiResponse.noContent([this.description = 'No Content'])
-    : status = 204,
-      type = null,
-      nullable = false,
-      example = null,
-      headers = const [],
-      contentTypes = const ['application/json'];
+  const ApiResponse.noContent([String description = 'No Content'])
+    : this(status: 204, description: description);
 
   /// Creates a `400 Bad Request` response.
   const ApiResponse.badRequest([
-    this.type,
-    this.description = 'Bad Request',
-    this.example,
-  ]) : status = 400,
-       nullable = false,
-       headers = const [],
-       contentTypes = const ['application/json'];
+    Type? type,
+    String description = 'Bad Request',
+    Object? example,
+  ]) : this(
+         status: 400,
+         type: type,
+         description: description,
+         example: example,
+       );
+
+  /// Creates a `401 Unauthorized` response.
+  const ApiResponse.unauthorized([
+    Type? type,
+    String description = 'Unauthorized',
+    Object? example,
+  ]) : this(
+         status: 401,
+         type: type,
+         description: description,
+         example: example,
+       );
+
+  /// Creates a `403 Forbidden` response.
+  const ApiResponse.forbidden([
+    Type? type,
+    String description = 'Forbidden',
+    Object? example,
+  ]) : this(
+         status: 403,
+         type: type,
+         description: description,
+         example: example,
+       );
 
   /// Creates a `404 Not Found` response.
   const ApiResponse.notFound([
-    this.type,
-    this.description = 'Not Found',
-    this.example,
-  ]) : status = 404,
-       nullable = false,
-       headers = const [],
-       contentTypes = const ['application/json'];
+    Type? type,
+    String description = 'Not Found',
+    Object? example,
+  ]) : this(
+         status: 404,
+         type: type,
+         description: description,
+         example: example,
+       );
+
+  /// Creates a `409 Conflict` response.
+  const ApiResponse.conflict([
+    Type? type,
+    String description = 'Conflict',
+    Object? example,
+  ]) : this(
+         status: 409,
+         type: type,
+         description: description,
+         example: example,
+       );
+
+  /// Creates a `422 Unprocessable Entity` response.
+  const ApiResponse.unprocessableEntity([
+    Type? type,
+    String description = 'Unprocessable Entity',
+    Object? example,
+  ]) : this(
+         status: 422,
+         type: type,
+         description: description,
+         example: example,
+       );
+
+  /// Creates a `429 Too Many Requests` response.
+  const ApiResponse.tooManyRequests([
+    Type? type,
+    String description = 'Too Many Requests',
+    Object? example,
+  ]) : this(
+         status: 429,
+         type: type,
+         description: description,
+         example: example,
+       );
 
   /// Creates a `500 Internal Server Error` response.
   const ApiResponse.internalServerError([
-    this.type,
-    this.description = 'Internal Server Error',
-    this.example,
-  ]) : status = 500,
-       nullable = false,
-       headers = const [],
-       contentTypes = const ['application/json'];
+    Type? type,
+    String description = 'Internal Server Error',
+    Object? example,
+  ]) : this(
+         status: 500,
+         type: type,
+         description: description,
+         example: example,
+       );
 
-  /// The HTTP status code.
+  /// Creates the `default` response, which covers every status code that no
+  /// other response declares.
+  ///
+  /// It takes named options like the main constructor, so it can carry a
+  /// different media type, for example `application/problem+json`.
+  const ApiResponse.defaultResponse({
+    this.type,
+    this.description = 'Unexpected error',
+    this.nullable = false,
+    this.example,
+    this.examples = const {},
+    this.headers = const [],
+    this.contentTypes = const ['application/json'],
+  }) : status = 0,
+       key = 'default';
+
+  /// Creates a response for a whole class of status codes.
+  ///
+  /// [hundreds] is the first digit, from 1 to 5: `ApiResponse.range(4)` is the
+  /// `4XX` response. An exact status code declared on the same operation takes
+  /// precedence over the range. The other options are named, like the main
+  /// constructor.
+  const ApiResponse.range(
+    int hundreds, {
+    this.type,
+    this.description = '',
+    this.nullable = false,
+    this.example,
+    this.examples = const {},
+    this.headers = const [],
+    this.contentTypes = const ['application/json'],
+  }) : assert(hundreds >= 1 && hundreds <= 5, 'hundreds must be 1 to 5'),
+       status = hundreds * 100,
+       key = '${hundreds}XX';
+
+  /// The HTTP status code, or the first status of a [range].
+  ///
+  /// It is `0` for the `default` response.
   final int status;
+
+  /// The response key when it is not a plain status code: `default` or a range
+  /// such as `4XX`. `null` for an exact status code.
+  final String? key;
 
   /// The Dart type of the response body, or `null` when there is no body.
   final Type? type;
@@ -481,7 +724,12 @@ class ApiResponse {
   final bool nullable;
 
   /// An example response body.
+  ///
+  /// Use either [example] or [examples], not both.
   final Object? example;
+
+  /// Named example response bodies.
+  final Map<String, ApiExample> examples;
 
   /// Response headers.
   final List<ApiResponseHeader> headers;
@@ -528,6 +776,8 @@ class ApiSchema {
     this.name,
     this.description,
     this.oneOf = const [],
+    this.allOf = const [],
+    this.anyOf = const [],
     this.discriminator,
     this.ignore = false,
   });
@@ -544,7 +794,21 @@ class ApiSchema {
   /// component schemas instead of a component built from this class's fields.
   final List<Type> oneOf;
 
-  /// The discriminator used with [oneOf].
+  /// Types whose schemas this schema extends.
+  ///
+  /// When non-empty, the generated schema is an `allOf` over the referenced
+  /// component schemas. Fields the class declares itself (not inherited ones)
+  /// are added as a final inline object, which is the usual way to model
+  /// `class Child extends Base` in OpenAPI. Set only one of [oneOf], [allOf],
+  /// and [anyOf].
+  final List<Type> allOf;
+
+  /// Concrete types of which at least one satisfies this schema.
+  ///
+  /// Behaves like [oneOf] but emits `anyOf`.
+  final List<Type> anyOf;
+
+  /// The discriminator used with [oneOf] or [anyOf].
   final ApiDiscriminator? discriminator;
 
   /// Whether the generator should skip auto-including the class.
@@ -558,6 +822,7 @@ class ApiProperty {
   /// Creates a property annotation.
   const ApiProperty({
     this.name,
+    this.type,
     this.description,
     this.example,
     this.required,
@@ -610,4 +875,12 @@ class ApiProperty {
 
   /// Whether the generator should skip this field.
   final bool ignore;
+
+  /// The type that describes this property in JSON.
+  ///
+  /// Use it when a custom converter changes the wire format, for example a
+  /// `DateTime` field that is serialized as an `int`. When omitted, axle uses
+  /// the converter's JSON type if it can find one, and the field's Dart type
+  /// otherwise. Nullability still comes from the field.
+  final Type? type;
 }

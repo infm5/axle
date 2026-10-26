@@ -95,6 +95,10 @@ void main() {
   group('generator errors', () {
     const cases = [
       'duplicate_route',
+      'invalid_style',
+      'duplicate_media_type',
+      'repeated_body_media_type',
+      'example_and_examples',
       'duplicate_operation_id',
       'unused_path_param',
       'invalid_status',

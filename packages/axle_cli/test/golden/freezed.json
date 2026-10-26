@@ -1,0 +1,160 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Golden freezed",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/people": {
+      "get": {
+        "operationId": "people",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Person"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shapes": {
+      "get": {
+        "operationId": "shapes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Shape"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Circle": {
+        "type": "object",
+        "properties": {
+          "radius": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "circle"
+            ]
+          }
+        },
+        "required": [
+          "radius",
+          "type"
+        ]
+      },
+      "Person": {
+        "type": "object",
+        "properties": {
+          "age": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "e_mail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "default": "guest"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "Polygon": {
+        "type": "object",
+        "properties": {
+          "regular": {
+            "type": "boolean",
+            "default": false
+          },
+          "sides": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "polygon"
+            ]
+          }
+        },
+        "required": [
+          "sides",
+          "type"
+        ]
+      },
+      "Shape": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Circle"
+          },
+          {
+            "$ref": "#/components/schemas/Polygon"
+          },
+          {
+            "$ref": "#/components/schemas/Square"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "circle": "#/components/schemas/Circle",
+            "polygon": "#/components/schemas/Polygon",
+            "sq": "#/components/schemas/Square"
+          }
+        }
+      },
+      "Square": {
+        "type": "object",
+        "properties": {
+          "side": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "sq"
+            ]
+          }
+        },
+        "required": [
+          "side",
+          "type"
+        ]
+      }
+    }
+  }
+}

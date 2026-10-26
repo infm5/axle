@@ -2,6 +2,8 @@ import 'package:axle_core/axle_core.dart';
 import 'package:test/test.dart';
 
 void main() {
+  _arrayConstraintTests();
+
   group('OpenApiSchema', () {
     test('serializes primitives', () {
       expect(const OpenApiSchema.any().toJson(), isEmpty);
@@ -202,6 +204,32 @@ void main() {
         'description': 'Old description.',
         'example': {'id': 1},
         'default': {'id': 4},
+      });
+    });
+  });
+}
+
+void _arrayConstraintTests() {
+  group('constraints on arrays', () {
+    test('format and bounds apply to the items', () {
+      final schema = const OpenApiSchema.array(
+        OpenApiSchema.string(),
+      ).withConstraints(format: 'binary', maxLength: 10);
+      expect(schema.toJson(), {
+        'type': 'array',
+        'items': {'type': 'string', 'format': 'binary', 'maxLength': 10},
+      });
+    });
+
+    test('the array keeps its own metadata', () {
+      final schema = const OpenApiSchema.array(
+        OpenApiSchema.integer(),
+        description: 'ids',
+      ).withConstraints(minimum: 1);
+      expect(schema.toJson(), {
+        'type': 'array',
+        'items': {'type': 'integer', 'minimum': 1},
+        'description': 'ids',
       });
     });
   });

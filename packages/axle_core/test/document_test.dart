@@ -4,6 +4,8 @@ import 'package:axle_core/axle_core.dart';
 import 'package:test/test.dart';
 
 void main() {
+  _exampleAndStyleTests();
+
   group('OpenApiDocument', () {
     test('serializes paths, operations, and components', () {
       final document = OpenApiDocument(
@@ -141,5 +143,85 @@ void main() {
       expect(encoded, contains('\n  "info": {'));
       expect(jsonDecode(encoded), document.toJson());
     });
+  });
+}
+
+void _exampleAndStyleTests() {
+  group('named examples and parameter style', () {
+    test('OpenApiExample serializes inline and external values', () {
+      expect(const OpenApiExample(value: {'a': 1}, summary: 'S').toJson(), {
+        'summary': 'S',
+        'value': {'a': 1},
+      });
+      expect(const OpenApiExample.external('https://x/y.json').toJson(), {
+        'externalValue': 'https://x/y.json',
+      });
+    });
+
+    test('OpenApiMediaType writes examples next to the schema', () {
+      expect(
+        const OpenApiMediaType(
+          schema: OpenApiSchema.string(),
+          examples: {'one': OpenApiExample(value: 'a')},
+        ).toJson(),
+        {
+          'schema': {'type': 'string'},
+          'examples': {
+            'one': {'value': 'a'},
+          },
+        },
+      );
+    });
+
+    test('OpenApiParameter writes style, explode, and examples', () {
+      final json =
+          const OpenApiParameter(
+            name: 'ids',
+            location: OpenApiParameterLocation.query,
+            schema: OpenApiSchema.array(OpenApiSchema.integer()),
+            style: 'pipeDelimited',
+            explode: false,
+            examples: {
+              'two': OpenApiExample(value: [1, 2]),
+            },
+          ).toJson();
+      expect(json['style'], 'pipeDelimited');
+      expect(json['explode'], false);
+      expect(json['examples'], {
+        'two': {
+          'value': [1, 2],
+        },
+      });
+    });
+  });
+
+  test('OpenApiHeader writes its example', () {
+    expect(
+      const OpenApiHeader(
+        schema: OpenApiSchema.string(),
+        description: 'Cache validator.',
+        example: '"v1"',
+      ).toJson(),
+      {
+        'description': 'Cache validator.',
+        'schema': {'type': 'string'},
+        'example': '"v1"',
+      },
+    );
+  });
+
+  test('ApiResponse range and default keys', () {
+    expect(const ApiResponse.range(4).key, '4XX');
+    expect(const ApiResponse.defaultResponse().key, 'default');
+    expect(const ApiResponse.defaultResponse().status, 0);
+    expect(
+      const ApiResponse.range(
+        5,
+        contentTypes: ['application/problem+json'],
+      ).contentTypes,
+      ['application/problem+json'],
+    );
+    expect(const ApiResponse.ok().key, isNull);
+    expect(const ApiResponse.conflict().status, 409);
   });
 }

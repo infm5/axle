@@ -1,0 +1,136 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Golden composition",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/contacts": {
+      "get": {
+        "operationId": "contacts",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dogs": {
+      "get": {
+        "operationId": "dogs",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dog"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlainAnimal"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Animal": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "Contact": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Phone"
+          },
+          {
+            "$ref": "#/components/schemas/Email"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "channel"
+        },
+        "description": "Any way to reach someone."
+      },
+      "Dog": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Animal"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "age": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "goodBoy": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "goodBoy"
+            ]
+          }
+        ],
+        "description": "A dog."
+      },
+      "Email": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "address"
+        ]
+      },
+      "Phone": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "number"
+        ]
+      },
+      "PlainAnimal": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Animal"
+          }
+        ]
+      }
+    }
+  }
+}

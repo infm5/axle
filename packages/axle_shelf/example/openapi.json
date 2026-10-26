@@ -3,7 +3,11 @@
   "info": {
     "title": "Shelf Todo Example",
     "version": "0.2.0",
-    "description": "A Shelf Todo API demonstrating axle_shelf."
+    "description": "A Shelf Todo API demonstrating axle_shelf.",
+    "license": {
+      "name": "MIT",
+      "identifier": "MIT"
+    }
   },
   "tags": [
     {

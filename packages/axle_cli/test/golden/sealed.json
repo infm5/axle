@@ -1,0 +1,197 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Golden sealed",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/events": {
+      "get": {
+        "operationId": "events",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pets": {
+      "get": {
+        "operationId": "pets",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pet"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shapes": {
+      "get": {
+        "operationId": "shapes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Shape"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Cat": {
+        "type": "object",
+        "properties": {
+          "lives": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lives"
+        ]
+      },
+      "Circle": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "radius": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "label",
+          "radius"
+        ]
+      },
+      "Dog": {
+        "type": "object",
+        "properties": {
+          "bark": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "bark"
+        ]
+      },
+      "Event": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SystemEvent"
+          },
+          {
+            "$ref": "#/components/schemas/UserEvent"
+          }
+        ]
+      },
+      "Pet": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Cat"
+          },
+          {
+            "$ref": "#/components/schemas/Dog"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "kind",
+          "mapping": {
+            "dog": "#/components/schemas/Dog",
+            "cat": "#/components/schemas/Cat"
+          }
+        },
+        "description": "A pet."
+      },
+      "Shape": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Circle"
+          },
+          {
+            "$ref": "#/components/schemas/Square"
+          }
+        ]
+      },
+      "Square": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "side": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "label",
+          "side"
+        ]
+      },
+      "SystemEvent": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "UserCreated": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "UserDeleted": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "UserEvent": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/UserCreated"
+          },
+          {
+            "$ref": "#/components/schemas/UserDeleted"
+          }
+        ]
+      }
+    }
+  }
+}

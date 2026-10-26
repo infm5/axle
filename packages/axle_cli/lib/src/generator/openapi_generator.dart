@@ -7,6 +7,7 @@ import 'package:axle_core/axle_core.dart';
 import 'package:path/path.dart' as p;
 
 import '../config.dart';
+import 'build_options.dart';
 import 'operation_builder.dart';
 import 'schema_registry.dart';
 import 'source_scanner.dart';
@@ -48,7 +49,7 @@ class OpenApiGenerator {
       skipPaths: {outputPath},
     ).scan();
 
-    final registry = SchemaRegistry();
+    final registry = SchemaRegistry(options: BuildOptions.load(root));
     if (libraries.isEmpty) {
       registry.warnings.add(
         'No Dart libraries found in ${config.scan.join(', ')}.',

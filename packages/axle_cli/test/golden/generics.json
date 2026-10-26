@@ -1,0 +1,358 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Golden generics",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/audited": {
+      "get": {
+        "operationId": "audited",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Audited_Item"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/items": {
+      "get": {
+        "operationId": "items",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Item"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/names": {
+      "get": {
+        "operationId": "names",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_String"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/nested": {
+      "get": {
+        "operationId": "nested",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_UserDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pair": {
+      "get": {
+        "operationId": "pair",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pair_UserDto_List_int"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tree": {
+      "get": {
+        "operationId": "tree",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tree_int"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user-page": {
+      "get": {
+        "operationId": "userPage",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "operationId": "users",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_UserDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Audited_Item": {
+        "type": "object",
+        "properties": {
+          "by": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Item"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Item"
+            }
+          }
+        },
+        "required": [
+          "by",
+          "data",
+          "meta"
+        ]
+      },
+      "Envelope_Page_UserDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Page_UserDto"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Page_UserDto"
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "Item": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "Page_Item": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            }
+          },
+          "next": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Item"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "description": "A page of results."
+      },
+      "Page_String": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "next": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "description": "A page of results."
+      },
+      "Page_UserDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserDto"
+            }
+          },
+          "next": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserDto"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "description": "A page of results."
+      },
+      "Pair_UserDto_List_int": {
+        "type": "object",
+        "properties": {
+          "first": {
+            "$ref": "#/components/schemas/UserDto"
+          },
+          "second": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        },
+        "required": [
+          "first",
+          "second"
+        ]
+      },
+      "Tree_int": {
+        "type": "object",
+        "properties": {
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Tree_int"
+            }
+          },
+          "value": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "children",
+          "value"
+        ]
+      },
+      "UserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UserPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserDto"
+            }
+          },
+          "next": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserDto"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ]
+      }
+    }
+  }
+}

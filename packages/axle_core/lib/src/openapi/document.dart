@@ -371,6 +371,9 @@ class OpenApiParameter {
     this.required = false,
     this.description,
     this.example,
+    this.examples = const {},
+    this.style,
+    this.explode,
     this.deprecated = false,
   });
 
@@ -389,8 +392,18 @@ class OpenApiParameter {
   /// A description of the parameter.
   final String? description;
 
-  /// An example value.
+  /// An example value. Mutually exclusive with [examples].
   final Object? example;
+
+  /// Named example values, keyed by name. Mutually exclusive with [example].
+  final Map<String, OpenApiExample> examples;
+
+  /// The serialization style, or `null` for the default of the location.
+  final String? style;
+
+  /// Whether array and object values produce one parameter per item, or `null`
+  /// for the default of the style.
+  final bool? explode;
 
   /// Whether the parameter is deprecated.
   final bool deprecated;
@@ -402,8 +415,14 @@ class OpenApiParameter {
     if (description != null) 'description': description,
     'required': required,
     if (deprecated) 'deprecated': true,
+    if (style != null) 'style': style,
+    if (explode != null) 'explode': explode,
     'schema': schema.toJson(),
     if (example != null) 'example': example,
+    if (examples.isNotEmpty)
+      'examples': {
+        for (final entry in examples.entries) entry.key: entry.value.toJson(),
+      },
   };
 }
 
@@ -467,6 +486,7 @@ class OpenApiHeader {
   const OpenApiHeader({
     required this.schema,
     this.description,
+    this.example,
     this.required = false,
     this.deprecated = false,
   });
@@ -476,6 +496,9 @@ class OpenApiHeader {
 
   /// A description of the header.
   final String? description;
+
+  /// An example value.
+  final Object? example;
 
   /// Whether the header is required.
   final bool required;
@@ -489,6 +512,7 @@ class OpenApiHeader {
     if (required) 'required': true,
     if (deprecated) 'deprecated': true,
     'schema': schema.toJson(),
+    if (example != null) 'example': example,
   };
 }
 
@@ -549,20 +573,65 @@ class OpenApiResponse {
   }
 }
 
+/// One named example value.
+class OpenApiExample {
+  /// Creates an example with an inline [value].
+  const OpenApiExample({this.value, this.summary, this.description})
+    : externalValue = null;
+
+  /// Creates an example whose value lives at [url].
+  const OpenApiExample.external(String url, {this.summary, this.description})
+    : externalValue = url,
+      value = null;
+
+  /// The example value, when it is inline.
+  final Object? value;
+
+  /// A URL of a document that holds the example value.
+  final String? externalValue;
+
+  /// A short description of the example.
+  final String? summary;
+
+  /// A longer description of the example.
+  final String? description;
+
+  /// Serializes the example to a JSON-compatible map.
+  Map<String, Object?> toJson() => {
+    if (summary != null) 'summary': summary,
+    if (description != null) 'description': description,
+    if (externalValue != null)
+      'externalValue': externalValue
+    else
+      'value': value,
+  };
+}
+
 /// The media type wrapper used for request and response bodies.
 class OpenApiMediaType {
   /// Creates a media type entry.
-  const OpenApiMediaType({required this.schema, this.example});
+  const OpenApiMediaType({
+    required this.schema,
+    this.example,
+    this.examples = const {},
+  });
 
   /// The schema for this media type.
   final OpenApiSchema schema;
 
-  /// An example value.
+  /// An example value. Mutually exclusive with [examples].
   final Object? example;
+
+  /// Named example values, keyed by name. Mutually exclusive with [example].
+  final Map<String, OpenApiExample> examples;
 
   /// Serializes the media type to a JSON-compatible map.
   Map<String, Object?> toJson() => {
     'schema': schema.toJson(),
     if (example != null) 'example': example,
+    if (examples.isNotEmpty)
+      'examples': {
+        for (final entry in examples.entries) entry.key: entry.value.toJson(),
+      },
   };
 }

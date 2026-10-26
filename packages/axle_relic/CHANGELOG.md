@@ -1,3 +1,8 @@
+## Unreleased
+
+- Widened the `relic` constraint to `>=1.2.0 <3.0.0`; the test suite passes on
+  Relic 1.2.0 and 2.0.0-rc.2.
+
 ## 0.2.0
 
 - Aligned with `axle_core` 0.2.0.

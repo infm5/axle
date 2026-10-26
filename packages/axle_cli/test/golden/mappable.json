@@ -1,0 +1,144 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Golden mappable",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/accounts": {
+      "get": {
+        "operationId": "accounts",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KebabAccount"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PascalAccount"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConstantAccount"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlainAccount"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Account": {
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": [
+              "LOW_LEVEL",
+              "HIGH_LEVEL",
+              "top"
+            ]
+          },
+          "login_count": {
+            "type": "integer"
+          },
+          "mail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "user_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "level",
+          "login_count",
+          "user_name"
+        ]
+      },
+      "ConstantAccount": {
+        "type": "object",
+        "properties": {
+          "USER_NAME": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "USER_NAME"
+        ]
+      },
+      "KebabAccount": {
+        "type": "object",
+        "properties": {
+          "user-name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "user-name"
+        ]
+      },
+      "PascalAccount": {
+        "type": "object",
+        "properties": {
+          "UserName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "UserName"
+        ]
+      },
+      "PlainAccount": {
+        "type": "object",
+        "properties": {
+          "userName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "userName"
+        ]
+      }
+    }
+  }
+}

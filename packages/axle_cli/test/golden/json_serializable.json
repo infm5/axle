@@ -1,0 +1,138 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Golden json_serializable",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/profiles/{profileId}": {
+      "get": {
+        "operationId": "getProfile",
+        "parameters": [
+          {
+            "name": "profileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnakeProfile"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DerivedProfile": {
+        "type": "object",
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "created_at",
+          "user_id"
+        ]
+      },
+      "KebabProfile": {
+        "type": "object",
+        "properties": {
+          "user-id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "user-id"
+        ]
+      },
+      "PascalProfile": {
+        "type": "object",
+        "properties": {
+          "UserId": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "UserId"
+        ]
+      },
+      "PlainProfile": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "userId"
+        ]
+      },
+      "ScreamingProfile": {
+        "type": "object",
+        "properties": {
+          "USER_ID": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "USER_ID"
+        ]
+      },
+      "SnakeProfile": {
+        "type": "object",
+        "properties": {
+          "KeepsName": {
+            "type": "string"
+          },
+          "api-override": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active_user",
+              "pending_review"
+            ]
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "free-tier",
+              "paid"
+            ]
+          },
+          "user_id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "KeepsName",
+          "api-override",
+          "display_name",
+          "status",
+          "tier",
+          "user_id"
+        ]
+      }
+    }
+  }
+}

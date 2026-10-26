@@ -8,6 +8,7 @@ info:
     email: "example@example.com"
   license:
     name: MIT
+    identifier: MIT
 tags:
   - name: System
     description: "Service metadata."

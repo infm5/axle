@@ -1,0 +1,102 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Golden converters",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/events": {
+      "get": {
+        "operationId": "events",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClassLevel"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ClassLevel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "when": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "when"
+        ]
+      },
+      "Event": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "integer"
+          },
+          "maybeAt": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "plain": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "price": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "priceText": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "seen": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "plain",
+          "price",
+          "seen"
+        ]
+      },
+      "Money": {
+        "type": "object",
+        "properties": {
+          "cents": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cents"
+        ]
+      }
+    }
+  }
+}
