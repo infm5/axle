@@ -10,7 +10,7 @@ environment:
 # analyzer than axle_cli needs, so pub cannot solve both in one package. Install
 # it once with `dart pub global activate axle_cli` and run `axle gen` instead.
 dependencies:
-  axle_shelf: ^0.2.0
+  axle_shelf: ^0.3.0
   freezed_annotation: ^3.0.0
   json_annotation: ^4.9.0
   shelf: ^1.4.3

@@ -47,21 +47,21 @@ packages:
       path: "../../axle_cli"
       relative: true
     source: path
-    version: "0.2.0"
+    version: "0.3.0"
   axle_core:
     dependency: "direct overridden"
     description:
       path: "../../axle_core"
       relative: true
     source: path
-    version: "0.2.0"
+    version: "0.3.0"
   axle_serverpod:
     dependency: transitive
     description:
       path: ".."
       relative: true
     source: path
-    version: "0.2.0"
+    version: "0.3.0"
   buffer:
     dependency: transitive
     description:

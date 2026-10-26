@@ -15,7 +15,7 @@ environment:
   sdk: ^3.9.0
 
 dependencies:
-  axle_core: ^0.2.0
+  axle_core: ^0.3.0
   shelf: ^1.4.3
   shelf_static: ^1.2.0
 
