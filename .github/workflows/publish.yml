@@ -1,0 +1,126 @@
+name: Publish
+
+# One workflow for every package. Push a tag named <package>-v<version>, for
+# example axle_core-v0.3.0, and only that package is verified and published.
+# Tags pushed together run side by side.
+on:
+  push:
+    tags:
+      - 'axle_*-v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      package: ${{ steps.tag.outputs.package }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag format
+        id: tag
+        shell: bash
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          pattern='^(axle_core|axle_cli|axle_shelf|axle_relic|axle_serverpod)-v([0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?)$'
+          if [[ ! "$TAG" =~ $pattern ]]; then
+            echo "::error::Tag '$TAG' must look like <package>-v<semver>, where <package> is one of axle_core, axle_cli, axle_shelf, axle_relic, axle_serverpod."
+            exit 1
+          fi
+          echo "package=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+          echo "version=${BASH_REMATCH[2]}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify tag is on master
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin master
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+            echo "::error::Tag $GITHUB_REF_NAME must point to a commit on master."
+            exit 1
+          fi
+
+      - name: Verify tag matches pubspec version
+        shell: bash
+        env:
+          PACKAGE: ${{ steps.tag.outputs.package }}
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          set -euo pipefail
+          declared="$(sed -n 's/^version:[[:space:]]*//p' "packages/$PACKAGE/pubspec.yaml" | head -n 1 | tr -d '"')"
+          if [ "$declared" != "$VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME says $VERSION, but packages/$PACKAGE/pubspec.yaml declares $declared."
+            exit 1
+          fi
+
+      - name: Verify LICENSE
+        shell: bash
+        env:
+          PACKAGE: ${{ steps.tag.outputs.package }}
+        run: |
+          set -euo pipefail
+          if [ ! -f "packages/$PACKAGE/LICENSE" ]; then
+            echo "::error::Add packages/$PACKAGE/LICENSE before publishing $PACKAGE."
+            exit 1
+          fi
+
+      # Every package except axle_core depends on it, and pub.dev cannot resolve
+      # a version that is not there yet. Wait for it instead of failing, so all
+      # the tags can be pushed together.
+      - name: Wait for axle_core on pub.dev
+        if: steps.tag.outputs.package != 'axle_core'
+        shell: bash
+        run: |
+          set -euo pipefail
+          core="$(sed -n 's/^version:[[:space:]]*//p' packages/axle_core/pubspec.yaml | head -n 1 | tr -d '"')"
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --show-error "https://pub.dev/api/packages/axle_core" |
+              jq --exit-status --arg version "$core" '.versions[] | select(.version == $version)' >/dev/null; then
+              echo "axle_core $core is on pub.dev."
+              exit 0
+            fi
+            echo "Waiting for axle_core $core on pub.dev ($attempt/60)..."
+            sleep 20
+          done
+          echo "::error::axle_core $core was not on pub.dev after 20 minutes. Publish axle_core first, then re-run this workflow."
+          exit 1
+
+      - name: Set up Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Analyze package
+        run: dart analyze
+        working-directory: packages/${{ steps.tag.outputs.package }}
+
+      - name: Test package
+        run: dart test
+        working-directory: packages/${{ steps.tag.outputs.package }}
+
+  publish:
+    name: Publish ${{ needs.verify.outputs.package }} to pub.dev
+    needs: verify
+    permissions:
+      contents: read
+      id-token: write
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    with:
+      working-directory: packages/${{ needs.verify.outputs.package }}
+      environment: pub.dev

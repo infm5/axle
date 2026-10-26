@@ -28,9 +28,11 @@ dart run melos run check   # analyze + test + format + spec freshness
 `.github/workflows/ci.yml` runs on every push and pull request: checkout, stable
 Dart, `dart pub get`, `dart run melos run check`, the documentation build,
 Redocly validation, and coverage upload. It validates only. Publishing is handled
-by per-package tag workflows (`publish-axle_*.yml`) using GitHub OIDC; no
-`PUB_CREDENTIALS` secret is required. Per-package tags (`axle_core-v0.2.0`, …)
-point at `master` and match the package version.
+by one tag workflow (`publish.yml`) using GitHub OIDC; no `PUB_CREDENTIALS`
+secret is required. Push a per-package tag (`axle_core-v0.3.0`, …) and only that
+package is verified and published. The tag must point at `master` and match the
+package version. Tags pushed together publish side by side, and every package
+except `axle_core` waits for `axle_core` to appear on pub.dev first.
 
 Redocly lints two sets of specs. The example specs use `redocly.yaml` at the
 repository root, and the golden specs use

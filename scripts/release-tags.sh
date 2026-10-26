@@ -13,7 +13,7 @@ set -euo pipefail
 #   - no local tag points at a different commit.
 #
 # Packages whose version is already published on pub.dev are skipped, because
-# pushing their publish workflow tag would try to republish that version.
+# pushing their publish tag would try to republish that version.
 # Existing local tags at HEAD are reused, so an interrupted run can be resumed.
 
 usage() {
@@ -275,4 +275,4 @@ fi
 
 echo
 echo "All requested publish tags were pushed."
-echo "Monitor the GitHub Actions publish workflows and verify each package on pub.dev."
+echo "Monitor the GitHub Actions Publish runs and verify each package on pub.dev."

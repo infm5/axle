@@ -28,23 +28,20 @@ jobs:
           npm ci
           npm run docs:build
       - name: Validate generated OpenAPI examples
-        # security-defined is intentionally skipped: the examples mix public
-        # and protected routes, and axle validates scheme references itself.
+        # Rule exceptions and their reasons live in redocly.yaml.
         run: |
           npx --yes @redocly/cli@2.71.0 lint \
             packages/axle_relic/example/openapi.json \
-            --skip-rule=no-empty-servers \
-            --skip-rule=security-defined \
-            --skip-rule=info-license-strict \
-            --skip-rule=info-license \
-            --skip-rule=operation-4xx-response
-          npx --yes @redocly/cli@2.71.0 lint \
             packages/axle_shelf/example/openapi.json \
-            --skip-rule=no-empty-servers \
-            --skip-rule=security-defined \
-            --skip-rule=info-license-strict \
-            --skip-rule=info-license \
-            --skip-rule=operation-4xx-response
+            examples/dart_mappable/openapi.json \
+            examples/freezed_unions/openapi.json \
+            examples/showcase/openapi.json \
+            --config redocly.yaml
+      - name: Validate golden OpenAPI specs
+        run: |
+          npx --yes @redocly/cli@2.71.0 lint \
+            packages/axle_cli/test/golden/*.json \
+            --config packages/axle_cli/test/golden/redocly.yaml
       - name: Generate coverage
         run: dart run melos run coverage
       - name: Upload coverage to Codecov

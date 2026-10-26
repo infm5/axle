@@ -15,3 +15,5 @@ docs/release-automation.md
 doc/node_modules/
 doc/.vitepress/dist/
 doc/.vitepress/cache/
+
+examples/*/pubspec.lock

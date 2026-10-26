@@ -1,0 +1,16 @@
+# Lint rules for the generated example specs. CI runs
+# `redocly lint --config redocly.yaml <spec>` for each example.
+extends:
+  - recommended
+rules:
+  # The examples omit `servers` on purpose: Swagger UI then calls the page's own
+  # origin, which works on any PORT.
+  no-empty-servers: off
+  # The examples mix public and protected routes and declare no document-wide
+  # default, so some operations carry no security entry.
+  security-defined: off
+  # Health and list endpoints have no client error to document.
+  operation-4xx-response: off
+  # The showcase lists localhost servers on purpose, because every example runs
+  # locally.
+  no-server-example.com: off
